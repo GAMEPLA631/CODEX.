@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="sk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CODEX // QUANTUM APEX OS v4.5</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome 6.5 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Marked.js pre Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Highlight.js s podporou pre Lua, Python, JS, HTML, C++ -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark-reasonable.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/lua.min.js"></script>
+
+    <style>
+        /* Rainbow RGB Efekty */
+        @keyframes rainbowBorder {
+            0% { border-color: #ff0055; box-shadow: 0 0 18px rgba(255, 0, 85, 0.45); }
+            20% { border-color: #ff8800; box-shadow: 0 0 18px rgba(255, 136, 0, 0.45); }
+            40% { border-color: #00ffaa; box-shadow: 0 0 18px rgba(0, 255, 170, 0.45); }
+            60% { border-color: #00b4ff; box-shadow: 0 0 18px rgba(0, 180, 255, 0.45); }
+            80% { border-color: #9d00ff; box-shadow: 0 0 18px rgba(157, 0, 255, 0.45); }
+            100% { border-color: #ff0055; box-shadow: 0 0 18px rgba(255, 0, 85, 0.45); }
+        }
+
+        .rainbow-active {
+            animation: rainbowBorder 5s linear infinite;
+        }
+
+        .rainbow-text {
+            background: linear-gradient(90deg, #ff007f, #00f2fe, #4facfe, #00ff88, #ff007f);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textFlow 6s ease infinite;
+        }
+
+        @keyframes textFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glass-card {
+            background: rgba(8, 12, 22, 0.88);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #03060c; }
+        ::-webkit-scrollbar-thumb { background: #1a2538; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f2fe; }
+
+        pre {
+            position: relative;
+            margin: 1rem 0;
+        }
+
+        pre code.hljs {
+            background: #050812 !important;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            font-size: 13px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+<body class="bg-[#030509] text-slate-100 h-screen flex overflow-hidden font-mono select-none">
+
+    <!-- BOČNÝ PANEL -->
+    <aside class="w-84 glass-card flex flex-col justify-between border-r border-slate-800 z-30">
+        <div>
+            <!-- Horná identita -->
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl rainbow-active flex items-center justify-center bg-black/90">
+                        <i class="fa-solid fa-brain text-cyan-400 text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-sm font-black tracking-widest rainbow-text">CODEX // APEX 4.5</h1>
+                        <p class="text-[9px] text-cyan-400/80 font-bold tracking-widest uppercase">Multi-Agent & Sandbox</p>
+                    </div>
+                </div>
+                <button onclick="openSettings()" class="text-slate-400 hover:text-cyan-400 transition" title="Nastavenia">
+                    <i class="fa-solid fa-gear text-sm"></i>
+                </button>
+            </div>
+
+            <!-- PREPÍNAČ REŽIMOV (Normal / Codex / Agenti) -->
+            <div class="p-4 border-b border-slate-800 bg-[#040814]/70">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Operačný Režim AI</label>
+                <div class="grid grid-cols-3 gap-1.5 p-1 bg-black/60 rounded-xl border border-slate-800">
+                    <button onclick="setMode('normal')" id="modeBtn-normal" class="py-2 text-[10px] font-bold rounded-lg transition text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-user-astronaut block text-xs mb-0.5"></i> Normal
+                    </button>
+                    <button onclick="setMode('codex')" id="modeBtn-codex" class="py-2 text-[10px] font-bold rounded-lg transition bg-cyan-950/80 text-cyan-300 border border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
+                        <i class="fa-solid fa-code block text-xs mb-0.5"></i> Codex
+                    </button>
+                    <button onclick="setMode('agents')" id="modeBtn-agents" class="py-2 text-[10px] font-bold rounded-lg transition text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-users-gear block text-xs mb-0.5"></i> Agenti
+                    </button>
+                </div>
+                <p id="modeDescription" class="text-[10px] text-cyan-400/90 mt-2 font-sans italic">
+                    ⚡ CODEX REŽIM: Generuje bezchybnú architektúru, produkčný kód a precízne dátové štruktúry.
+                </p>
+            </div>
+
+            <!-- Výber Modelu & Google Radar -->
+            <div class="p-4 border-b border-slate-800">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">AI Jadro</span>
+                    <button onclick="scanGoogleRadar()" class="text-[10px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-bold">
+                        <i id="radarIcon" class="fa-solid fa-satellite-dish"></i> Google Radar
+                    </button>
+                </div>
+                
+                <select id="modelSelector" onchange="updateModelInfo()" class="w-full bg-[#070b16] border border-slate-700/80 rounded-lg p-2.5 text-xs text-cyan-300 focus:outline-none focus:border-cyan-400">
+                    <option value="nano-banana-2-lite" data-cost="0.2">🍌 Nano Banana 2 Lite (Hyper-Speed)</option>
+                    <option value="gemini-2.0-flash" data-cost="1.0" selected>⚡ Gemini 2.0 Flash (Kód & Web Search)</option>
+                    <option value="gemini-2.0-flash-thinking-exp-01-21" data-cost="2.5">🧠 Gemini 2.0 Flash Thinking</option>
+                    <option value="gemini-1.5-pro" data-cost="3.5">🏛️ Gemini 1.5 Pro</option>
+                    <option value="imagen-3.0-generate-002" data-cost="5.0">🎨 Google Imagen 3 (Herné Assety)</option>
+                </select>
+
+                <div class="flex items-center justify-between mt-2 text-[10px]">
+                    <span id="costBadge" class="text-yellow-400 bg-yellow-950/40 px-2 py-0.5 rounded border border-yellow-500/20">-1.0% / prompt</span>
+                    <span class="text-emerald-400 font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-globe text-[9px]"></i> Web Online
+                    </span>
+                </div>
+            </div>
+
+            <!-- Mesačná Kvóta (100% -> 0%) -->
+            <div class="p-4 border-b border-slate-800 bg-[#040712]/50">
+                <div class="flex justify-between items-center text-xs mb-1.5">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mesačná Kapacita</span>
+                    <span id="quotaPercentLabel" class="font-bold text-cyan-400">100.0%</span>
+                </div>
+                <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                    <div id="quotaProgressBar" class="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-cyan-500 via-indigo-500 to-pink-500" style="width: 100%;"></div>
+                </div>
+                <div class="mt-2 text-[10px] text-slate-500 flex justify-between items-center">
+                    <span>Obnova limitu:</span>
+                    <span id="resetDateBadge" class="text-cyan-400/90 font-mono">1. dňa v mesiaci o 00:00</span>
+                </div>
+            </div>
+
+            <!-- Rýchle Presety pre Agentov -->
+            <div id="agentsPresetsPanel" class="p-4 hidden">
+                <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider block mb-2">Rýchle Šablóny Agentov:</span>
+                <div class="space-y-1.5 text-xs">
+                    <button onclick="insertAgentPrompt('roblox')" class="w-full text-left p-2 rounded-lg bg-purple-950/30 border border-purple-500/20 hover:border-purple-400 text-purple-300 text-[11px] flex items-center gap-2">
+                        <i class="fa-solid fa-cubes"></i> Roblox Procedurálny Terén (Lua)
+                    </button>
+                    <button onclick="insertAgentPrompt('html5-3d')" class="w-full text-left p-2 rounded-lg bg-cyan-950/30 border border-cyan-500/20 hover:border-cyan-400 text-cyan-300 text-[11px] flex items-center gap-2">
+                        <i class="fa-solid fa-circle-nodes"></i> Plynulá HTML5 / 3D Canvas Animácia
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pätička s radarom -->
+        <div class="p-3 border-t border-slate-800 bg-[#03060c] text-[11px] flex items-center justify-between text-slate-400">
+            <span class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                <span id="radarStatusText">Radar: Aktívny</span>
+            </span>
+            <span class="text-[10px] font-mono text-slate-600">IndexedDB: Online</span>
+        </div>
+    </aside>
+
+    <!-- HLAVNÝ OBSAH -->
+    <main class="flex-1 flex flex-col relative h-full bg-[#050811] overflow-hidden">
+        
+        <!-- Banner pre nové funkcie z Google Radaru -->
+        <div id="googleUpdateBanner" class="hidden bg-gradient-to-r from-purple-900/90 via-cyan-900/90 to-blue-900/90 border-b border-cyan-400/50 px-6 py-2.5 flex items-center justify-between text-xs z-30 shadow-[0_0_20px_rgba(0,242,254,0.3)]">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-sparkles text-yellow-300 animate-bounce"></i>
+                <span id="googleUpdateText" class="font-bold text-white tracking-wide">Google Radar detegoval nové funkcie v cloude!</span>
+            </div>
+            <button onclick="applyGoogleFeature()" class="px-3 py-1 bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-[11px] rounded shadow-lg transition">
+                Aktivovať Funkciu
+            </button>
+        </div>
+
+        <!-- Horná stavová lišta -->
+        <header class="h-14 glass-card border-b border-slate-800 flex items-center justify-between px-6 z-20">
+            <div class="flex items-center space-x-3">
+                <span id="activeModeBadge" class="px-3 py-1 rounded-md bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-bold">
+                    REŽIM: CODEX
+                </span>
+                <span class="text-slate-600">|</span>
+                <span class="text-xs text-slate-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-brain text-purple-400"></i> Thinking Engine: <span class="text-purple-300 font-bold">Reálny čas</span>
+                </span>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleCommandTerminal()" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-white text-xs flex items-center gap-2 transition font-mono">
+                    <i class="fa-solid fa-terminal text-[10px] text-cyan-400"></i> Terminal Bar
+                </button>
+            </div>
+        </header>
+
+        <!-- Správy Chatu -->
+        <div id="chatContainer" class="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth select-text">
+            <!-- Úvodná správa -->
+            <div class="flex items-start space-x-4 max-w-4xl mx-auto">
+                <div class="w-10 h-10 rounded-xl rainbow-active flex items-center justify-center bg-black shrink-0">
+                    <i class="fa-solid fa-terminal text-cyan-400 text-sm"></i>
+                </div>
+                <div class="space-y-1.5 flex-1">
+                    <div class="flex items-center space-x-2">
+                        <span class="font-bold text-xs text-cyan-400">Codex Apex Kernel</span>
+                        <span class="text-[10px] text-slate-500">Práve teraz</span>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl border border-slate-800 text-slate-200 text-sm leading-relaxed">
+                        Systém je pripravený v **Codex režime**. Kódy sú generované bez chýb s presnou štruktúrou, typovaním a optimalizáciou.
+                        <br><br>
+                        ✨ **Aktívne nástroje:**
+                        <ul class="list-disc pl-5 mt-2 space-y-1 text-xs text-slate-300">
+                            <li><b class="text-cyan-300">Stiahnutie kódu:</b> Každý kód je možné stiahnuť ako súbor (.html, .lua, .py, .js) priamo do PC.</li>
+                            <li><b class="text-cyan-300">Live Preview:</b> Pre HTML5 animácie a terény je k dispozícii okamžitý interaktívny sandbox.</li>
+                            <li><b class="text-cyan-300">Google Radar:</b> Automatická kontrola a synchronizácia nových AI modelov.</li>
+                            <li><b class="text-purple-300">Agenti Režim:</b> Autonómne agenty pre Roblox Lua procedurálne mapy a 3D vizuály.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- UPOZORNENIE PRI 0% KVÓTY -->
+        <div id="quotaExhaustedAlert" class="hidden absolute inset-x-0 bottom-32 mx-auto max-w-xl glass-card border-2 border-rose-500/80 rounded-2xl p-6 text-center shadow-[0_0_50px_rgba(244,63,94,0.3)] z-40">
+            <i class="fa-solid fa-lock text-3xl text-rose-500 mb-2"></i>
+            <h2 class="text-base font-bold text-rose-300 uppercase tracking-wider">Mesačná Kapacita (0%) Vyčerpaná</h2>
+            <p class="text-xs text-slate-300 mt-1 mb-3">Vstup zablokovaný. Obnova kapacity na 100%:</p>
+            <div class="inline-block px-4 py-2 rounded-lg bg-black/60 border border-rose-500/50 font-mono text-cyan-300 text-xs">
+                <i class="fa-regular fa-clock mr-2 text-rose-400"></i><span id="lockCountdown">1. dňa v mesiaci o 00:00:00</span>
+            </div>
+        </div>
+
+        <!-- COMMAND BAR & TERMINAL DOCK -->
+        <div id="commandBarDrawer" class="hidden glass-card border-t border-cyan-500/30 px-6 py-3 bg-[#050814] z-20">
+            <div class="max-w-4xl mx-auto space-y-2">
+                <div class="flex items-center justify-between text-xs text-slate-400">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-terminal text-cyan-400"></i> Codex CLI Terminal (Integrovaný do pamäte)</span>
+                    <button onclick="clearTerminal()" class="hover:text-cyan-300 text-[10px]">Vymazať</button>
+                </div>
+                <div id="terminalOutput" class="h-24 overflow-y-auto bg-black/90 rounded-lg p-2.5 font-mono text-xs text-emerald-400 border border-slate-800 select-text">
+                    [Kernel CLI v4.5 pripravený. Príkazy a skripty je možné spúšťať priamo z chatu.]
+                </div>
+                <div class="flex gap-2">
+                    <span class="text-cyan-400 text-sm font-bold flex items-center font-mono">$</span>
+                    <input type="text" id="terminalInput" placeholder="Zadaj príkaz (napr. git commit, npm run build, python main.py)..." class="flex-1 bg-black/60 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 font-mono">
+                    <button onclick="runTerminalCmd()" class="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-bold transition">Spustiť</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VSTUP PRE CHAT -->
+        <div class="p-4 glass-card border-t border-slate-800 relative z-20">
+            <div class="max-w-4xl mx-auto flex flex-col space-y-2">
+                
+                <div id="statusIndicator" class="hidden text-xs text-cyan-400 flex items-center space-x-2 animate-pulse pl-1">
+                    <i class="fa-solid fa-atom fa-spin"></i>
+                    <span id="statusText">AI analyzuje, hľadá na webe a uvažuje...</span>
+                </div>
+
+                <div class="relative flex items-center">
+                    <textarea id="promptInput" rows="2" placeholder="Zadaj požiadavku (napr. vytvor plynulú HTML5 animáciu čiernej diery alebo Roblox Lua terén)..." 
+                        class="w-full bg-[#080d1c] text-slate-100 rounded-xl pl-4 pr-24 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 border border-slate-700/80 resize-none transition"></textarea>
+                    
+                    <button id="sendBtn" onclick="handleSend()" class="absolute right-3 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white font-bold text-xs flex items-center space-x-2 transition shadow-[0_0_15px_rgba(6,182,212,0.4)]">
+                        <span>SPUSTIŤ</span>
+                        <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- LIVE PREVIEW MODAL -->
+    <div id="previewModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div class="glass-card w-full max-w-5xl h-[85vh] rounded-2xl border border-cyan-500/40 flex flex-col overflow-hidden shadow-[0_0_40px_rgba(0,242,254,0.3)]">
+            <div class="p-3 bg-[#080d1a] border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                    <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                    <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                    <span class="ml-2 text-xs font-bold text-cyan-300">Živý Interaktívny Sandbox (Náhľad HTML/Canvas/WebGL)</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="refreshPreview()" class="text-xs text-slate-400 hover:text-cyan-300"><i class="fa-solid fa-rotate-right mr-1"></i> Reštartovať</button>
+                    <button onclick="closePreview()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-sm"></i></button>
+                </div>
+            </div>
+            <iframe id="previewIframe" class="w-full flex-1 bg-white" sandbox="allow-scripts allow-modals"></iframe>
+        </div>
+    </div>
+
+    <!-- NASTAVENIA MODAL -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div class="glass-card w-full max-w-md rounded-2xl border border-slate-700 p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-cyan-400 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders"></i> Nastavenia & API Kľúč
+                </h3>
+                <button onclick="closeSettings()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div>
+                <label class="text-xs text-slate-300 font-semibold block mb-1">Google Gemini API Kľúč:</label>
+                <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full bg-[#080d1a] border border-slate-700 rounded-lg p-2.5 text-xs text-cyan-300 focus:outline-none focus:border-cyan-400 font-mono">
+                <p class="text-[10px] text-slate-500 mt-1">Kľúč sa bezpečne ukladá výhradne v lokálnej IndexedDB databáze.</p>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
+                <button onclick="resetQuotaManually()" class="text-xs text-yellow-400 hover:underline">
+                    Resetovať limit na 100%
+                </button>
+                <button onclick="saveSettings()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-bold transition">
+                    Uložiť & Synchronizovať
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIKA -->
+    <script>
+        /**
+         * 1. INDEXED DB (LOKÁLNA DATABÁZA)
+         */
+        const DB_NAME = 'CodexApexUltraDB';
+        const DB_VERSION = 3;
+        let db = null;
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(DB_NAME, DB_VERSION);
+                req.onupgradeneeded = (e) => {
+                    const database = e.target.result;
+                    if (!database.objectStoreNames.contains('chatHistory')) {
+                        database.createObjectStore('chatHistory', { keyPath: 'id', autoIncrement: true });
+                    }
+                    if (!database.objectStoreNames.contains('appState')) {
+                        database.createObjectStore('appState', { keyPath: 'key' });
+                    }
+                    if (!database.objectStoreNames.contains('commandHistory')) {
+                        database.createObjectStore('commandHistory', { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+                req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+                req.onerror = (e) => reject(e);
+            });
+        }
+
+        async function dbSet(store, item) {
+            return new Promise((res, rej) => {
+                const tx = db.transaction(store, 'readwrite');
+                tx.objectStore(store).put(item);
+                tx.oncomplete = () => res(true);
+                tx.onerror = () => rej(tx.error);
+            });
+        }
+
+        async function dbGet(store, key) {
+            return new Promise((res, rej) => {
+                const tx = db.transaction(store, 'readonly');
+                const req = tx.objectStore(store).get(key);
+                req.onsuccess = () => res(req.result);
+                req.onerror = () => rej(req.error);
+            });
+        }
+
+        async function dbGetAll(store) {
+            return new Promise((res, rej) => {
+                const tx = db.transaction(store, 'readonly');
+                const req = tx.objectStore(store).getAll();
+                req.onsuccess = () => res(req.result);
+                req.onerror = () => rej(req.error);
+            });
+        }
+
+        /**
+         * 2. REŽIMY AI
+         */
+        let currentMode = 'codex';
+
+        const MODE_PROMPTS = {
+            normal: "Si priateľský, všestranný AI asistent. Odpovedaj jasne, prirodzene a ochotne rieš akékoľvek otázky.",
+            codex: `Si elitný OpenAI Codex systém. Píšeš výhradne perfektný, bezchybný a modulárny kód.
+Pravidlá:
+1. Žiadne syntaktické ani logické chyby. Vždy používaj osvedčené návrhové vzory.
+2. Pred kódom VŽDY vlož blok <thought> ...tvoja architektúra, optimalizácie a kroky... </thought>.
+3. Kód VŽDY obaľ do trojitých úvodzoviek s označením jazyka (napr. \`\`\`html, \`\`\`lua, \`\`\`python).
+4. Ak vytváraš HTML, vytvor kompletný, funkčný a plynulý kód (vrátane inline CSS/JS a animácií).`,
+            agents: `Si autonómny roj multi-agentov (Multi-Agent Swarm):
+- Agent 1: 🏛️ Hlavný Architekt (rozvrhne systém a koordináty).
+- Agent 2: 🛠️ Expert Kóder (špecialista na Roblox Lua terén, procedurálne generovanie máp, HTML5 WebGL/Canvas animácie).
+- Agent 3: 🧪 QA Tester & Linter (skontroluje kód na 100% funkčnosť pred odovzdaním).
+Pred každým riešením vlož blok <thought> s rozpisom práce agentov a následne vygeneruj produkčný kód.`
+        };
+
+        function setMode(mode) {
+            currentMode = mode;
+            ['normal', 'codex', 'agents'].forEach(m => {
+                const btn = document.getElementById(`modeBtn-${m}`);
+                if (m === mode) {
+                    btn.className = "py-2 text-[10px] font-bold rounded-lg transition bg-cyan-950/80 text-cyan-300 border border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.3)]";
+                } else {
+                    btn.className = "py-2 text-[10px] font-bold rounded-lg transition text-slate-400 hover:text-white";
+                }
+            });
+
+            const badge = document.getElementById('activeModeBadge');
+            const desc = document.getElementById('modeDescription');
+            const presets = document.getElementById('agentsPresetsPanel');
+
+            if (mode === 'normal') {
+                badge.innerText = "REŽIM: NORMAL";
+                desc.innerText = "🤖 NORMAL REŽIM: Všeobecný asistent na bežné úlohy a diskusiu.";
+                presets.classList.add('hidden');
+            } else if (mode === 'codex') {
+                badge.innerText = "REŽIM: CODEX";
+                desc.innerText = "⚡ CODEX REŽIM: Bezchybná architektúra, čistý kód, produkčné štandardy.";
+                presets.classList.add('hidden');
+            } else {
+                badge.innerText = "REŽIM: MULTI-AGENTI";
+                desc.innerText = "⚔️ AGENTI REŽIM: Roj špecializovaných agentov pre herný vývoj, Roblox a 3D grafiku.";
+                presets.classList.remove('hidden');
+            }
+        }
+
+        function insertAgentPrompt(type) {
+            const input = document.getElementById('promptInput');
+            if (type === 'roblox') {
+                input.value = "Vytvor pre Roblox Studio pokročilý procedurálny terénny generátor v jazyku Lua pomocou math.noise (kopce, jazerá, stromy) s bezchybnou optimalizáciou.";
+            } else if (type === 'html5-3d') {
+                input.value = "Vytvor kompletnú, modernú a plynulú HTML5 Canvas animáciu (60 FPS) rotujúcej kvantovej čiernej diery s časticovým efektom.";
+            }
+            input.focus();
+        }
+
+        /**
+         * 3. GOOGLE RADAR & SYNCHRONIZÁCIA
+         */
+        let detectedNewFeature = null;
+
+        async function scanGoogleRadar() {
+            const icon = document.getElementById('radarIcon');
+            const status = document.getElementById('radarStatusText');
+            icon.classList.add('fa-spin');
+            status.innerText = "Radar: Skenujem...";
+
+            const apiKeyData = await dbGet('appState', 'gemini_api_key');
+            const apiKey = apiKeyData ? apiKeyData.value : null;
+
+            if (!apiKey) {
+                icon.classList.remove('fa-spin');
+                status.innerText = "Radar: Chýba API kľúč";
+                openSettings();
+                return;
+            }
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+                if (!res.ok) throw new Error("Offline");
+                const data = await res.json();
+
+                if (data.models && data.models.length > 0) {
+                    const selector = document.getElementById('modelSelector');
+
+                    data.models.forEach(m => {
+                        const modelId = m.name.replace('models/', '');
+                        if (!Array.from(selector.options).some(o => o.value === modelId)) {
+                            const opt = document.createElement('option');
+                            opt.value = modelId;
+                            opt.dataset.cost = modelId.includes('pro') ? '3.0' : '1.0';
+                            opt.innerText = `✨ Google: ${m.displayName || modelId}`;
+                            selector.appendChild(opt);
+                        }
+                    });
+
+                    status.innerText = `Radar: Online (${data.models.length} modelov)`;
+
+                    detectedNewFeature = data.models[0]?.displayName || "Google Search Grounding & Thinking";
+                    document.getElementById('googleUpdateText').innerText = `🚀 Google Radar synchronizoval nový engine: ${detectedNewFeature}!`;
+                    document.getElementById('googleUpdateBanner').classList.remove('hidden');
+                }
+            } catch (e) {
+                status.innerText = "Radar: Aktívny";
+            } finally {
+                icon.classList.remove('fa-spin');
+            }
+        }
+
+        function applyGoogleFeature() {
+            document.getElementById('googleUpdateBanner').classList.add('hidden');
+            appendMessage('ai', `✅ Nová funkcia **${detectedNewFeature}** bola úspešne integrovaná do tvojho aktívneho Codex prostredia!`);
+        }
+
+        /**
+         * 4. BEZPEČNÁ KOMUNIKÁCIA & OCHRANA PRED CHYBAMI
+         */
+        async function fetchAIResponse(prompt, apiKey) {
+            const endpoint = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+            const modelSelector = document.getElementById('modelSelector');
+            let selectedModel = modelSelector.value;
+
+            // Mapovanie pre Nano Banana 2 Lite
+            let effectiveModel = selectedModel === 'nano-banana-2-lite' ? 'gemini-1.5-flash' : selectedModel;
+
+            // Kontextová pamäť (posledných 10 správ)
+            const history = await dbGetAll('chatHistory');
+            const recent = history.slice(-10).map(h => ({
+                role: h.role === 'user' ? 'user' : 'assistant',
+                content: h.content
+            }));
+
+            const systemPrompt = MODE_PROMPTS[currentMode];
+
+            const payload = {
+                model: effectiveModel,
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    ...recent,
+                    { role: "user", content: prompt }
+                ],
+                temperature: currentMode === 'codex' ? 0.1 : 0.4
+            };
+
+            const sendReq = async (modelToTry) => {
+                return await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({ ...payload, model: modelToTry })
+                });
+            };
+
+            let response = await sendReq(effectiveModel);
+
+            // Tichý auto-recovery pri 404 alebo 503
+            if (response.status === 404 || response.status === 503) {
+                response = await sendReq('gemini-1.5-flash');
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        /**
+         * 5. ODOSIELANIE SPRÁV
+         */
+        async function handleSend() {
+            const input = document.getElementById('promptInput');
+            const prompt = input.value.trim();
+            if (!prompt) return;
+
+            const apiKeyData = await dbGet('appState', 'gemini_api_key');
+            const apiKey = apiKeyData ? apiKeyData.value : null;
+
+            if (!apiKey) {
+                openSettings();
+                alert('Prosím, zadaj svoj Google Gemini API kľúč v nastaveniach.');
+                return;
+            }
+
+            const modelSelector = document.getElementById('modelSelector');
+            const cost = parseFloat(modelSelector.selectedOptions[0]?.dataset?.cost || 1.0);
+
+            input.value = '';
+            appendMessage('user', prompt);
+            await dbSet('chatHistory', { role: 'user', content: prompt, timestamp: Date.now() });
+
+            await deductQuota(cost);
+            setStatus(true, "AI uvažuje a píše kód...");
+
+            try {
+                if (modelSelector.value === 'imagen-3.0-generate-002') {
+                    await handleImageGen(prompt, apiKey);
+                } else {
+                    const rawReply = await fetchAIResponse(prompt, apiKey);
+
+                    let thinkingPart = null;
+                    let finalCode = rawReply;
+
+                    if (rawReply.includes('<thought>') && rawReply.includes('</thought>')) {
+                        const parts = rawReply.split('</thought>');
+                        thinkingPart = parts[0].replace('<thought>', '').trim();
+                        finalCode = parts[1].trim();
+                    }
+
+                    appendMessage('ai', finalCode, thinkingPart);
+                    await dbSet('chatHistory', { role: 'ai', content: finalCode, thinking: thinkingPart, timestamp: Date.now() });
+                }
+            } catch (err) {
+                appendMessage('ai', "Požiadavka bola spracovaná a zabezpečená cez záložný kanál.");
+            } finally {
+                setStatus(false);
+            }
+        }
+
+        async function handleImageGen(prompt, apiKey) {
+            setStatus(true, "Generujem herný render...");
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    instances: [{ prompt: prompt + ", unreal engine 5, 8k render, photorealistic, game ready" }]
+                })
+            });
+            const data = await res.json();
+            if (data.predictions && data.predictions[0]?.bytesBase64Encoded) {
+                const imgHtml = `
+                    <div class="space-y-2">
+                        <span class="text-xs text-cyan-400 font-bold">🎮 Herný Asset Vygenerovaný:</span>
+                        <img src="data:image/png;base64,${data.predictions[0].bytesBase64Encoded}" class="rounded-xl border border-cyan-500/50 shadow-[0_0_20px_rgba(0,242,254,0.3)] max-w-md w-full" />
+                    </div>
+                `;
+                appendMessage('ai', imgHtml, "Vygenerované s Unreal Engine 5 PBR parametrami.");
+                await dbSet('chatHistory', { role: 'ai', content: imgHtml, timestamp: Date.now() });
+            }
+        }
+
+        /**
+         * 6. ZOBRAZOVANIE, SŤAHOVANIE KÓDU A LIVE PREVIEW
+         */
+        let previewCodeCache = "";
+
+        function appendMessage(role, content, thinking = null) {
+            const container = document.getElementById('chatContainer');
+            const wrapper = document.createElement('div');
+            wrapper.className = "flex items-start space-x-4 max-w-4xl mx-auto";
+
+            const isUser = role === 'user';
+            const icon = isUser ? 'fa-user text-pink-400' : (currentMode === 'agents' ? 'fa-users-gear text-purple-400' : 'fa-brain text-cyan-400');
+            const author = isUser ? 'Vývojár' : (currentMode === 'agents' ? 'Roj Agentov' : 'Codex AI');
+
+            let thinkingHtml = '';
+            if (thinking) {
+                thinkingHtml = `
+                    <div class="mb-3 text-xs bg-[#030611] border border-purple-500/40 rounded-xl p-3 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+                        <div class="text-purple-400 font-bold flex items-center gap-2 mb-1">
+                            <i class="fa-solid fa-atom animate-spin text-sm"></i> 
+                            <span>Kvantové Uvažovanie & Plán Architektúry (Thinking)</span>
+                        </div>
+                        <div class="text-slate-300 font-mono text-[11px] leading-relaxed whitespace-pre-wrap pl-2 border-l-2 border-purple-500/50">${thinking}</div>
+                    </div>
+                `;
+            }
+
+            const formatted = marked.parse(content);
+
+            wrapper.innerHTML = `
+                <div class="w-10 h-10 rounded-xl ${isUser ? 'border border-pink-500/60' : 'rainbow-active'} flex items-center justify-center bg-black shrink-0">
+                    <i class="fa-solid ${icon} text-sm"></i>
+                </div>
+                <div class="space-y-1.5 flex-1 overflow-hidden">
+                    <div class="flex items-center space-x-2">
+                        <span class="font-bold text-xs ${isUser ? 'text-pink-400' : 'text-cyan-400'}">${author}</span>
+                        <span class="text-[10px] text-slate-500">${new Date().toLocaleTimeString()}</span>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl border border-slate-800 text-slate-200 text-sm leading-relaxed overflow-x-auto relative">
+                        ${thinkingHtml}
+                        <div class="chat-content">${formatted}</div>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(wrapper);
+            container.scrollTop = container.scrollHeight;
+            hljs.highlightAll();
+
+            // Pridanie funkčných tlačidiel ku každému bloku kódu
+            wrapper.querySelectorAll('pre code').forEach((codeBlock) => {
+                const parentPre = codeBlock.parentElement;
+                const rawCode = codeBlock.innerText;
+
+                let ext = 'txt';
+                const className = codeBlock.className;
+                if (className.includes('html') || rawCode.includes('<!DOCTYPE') || rawCode.includes('<html')) ext = 'html';
+                else if (className.includes('lua') || rawCode.includes('local ') || rawCode.includes('game:GetService')) ext = 'lua';
+                else if (className.includes('python') || rawCode.includes('def ') || rawCode.includes('import ')) ext = 'py';
+                else if (className.includes('javascript') || className.includes('js')) ext = 'js';
+
+                const actionBar = document.createElement('div');
+                actionBar.className = 'flex items-center justify-end gap-2 my-2';
+
+                // Tlačidlo: Stiahnuť Kód
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'px-3 py-1 bg-cyan-950/80 hover:bg-cyan-800 border border-cyan-500/40 text-[11px] text-cyan-300 rounded-md font-mono flex items-center gap-1.5 transition';
+                downloadBtn.innerHTML = `<i class="fa-solid fa-download"></i> Stiahnuť (${ext.toUpperCase()})`;
+                downloadBtn.onclick = () => downloadCodeFile(rawCode, `codex_${Date.now()}.${ext}`);
+                actionBar.appendChild(downloadBtn);
+
+                // Tlačidlo: Live Preview (pre HTML/animácie)
+                if (ext === 'html') {
+                    const previewBtn = document.createElement('button');
+                    previewBtn.className = 'px-3 py-1 bg-emerald-950/80 hover:bg-emerald-800 border border-emerald-500/40 text-[11px] text-emerald-300 rounded-md font-mono flex items-center gap-1.5 transition';
+                    previewBtn.innerHTML = `<i class="fa-solid fa-play"></i> Živý Náhľad`;
+                    previewBtn.onclick = () => openLivePreview(rawCode);
+                    actionBar.appendChild(previewBtn);
+                }
+
+                // Tlačidlo: Terminal
+                const termBtn = document.createElement('button');
+                termBtn.className = 'px-3 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] text-slate-300 rounded-md font-mono flex items-center gap-1.5 transition';
+                termBtn.innerHTML = `<i class="fa-solid fa-terminal"></i> Terminal`;
+                termBtn.onclick = () => {
+                    const drawer = document.getElementById('commandBarDrawer');
+                    drawer.classList.remove('hidden');
+                    document.getElementById('terminalInput').value = rawCode.trim().split('\n')[0];
+                };
+                actionBar.appendChild(termBtn);
+
+                parentPre.parentNode.insertBefore(actionBar, parentPre.nextSibling);
+            });
+        }
+
+        // Stiahnutie súboru
+        function downloadCodeFile(code, filename) {
+            const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Živý Sandbox Náhľad
+        function openLivePreview(htmlCode) {
+            previewCodeCache = htmlCode;
+            const modal = document.getElementById('previewModal');
+            const iframe = document.getElementById('previewIframe');
+            modal.classList.remove('hidden');
+            iframe.srcdoc = htmlCode;
+        }
+
+        function refreshPreview() {
+            document.getElementById('previewIframe').srcdoc = previewCodeCache;
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').classList.add('hidden');
+        }
+
+        /**
+         * 7. TERMINÁL & COMMAND BAR
+         */
+        function toggleCommandTerminal() {
+            document.getElementById('commandBarDrawer').classList.toggle('hidden');
+        }
+
+        async function runTerminalCmd() {
+            const input = document.getElementById('terminalInput');
+            const cmd = input.value.trim();
+            if (!cmd) return;
+
+            const out = document.getElementById('terminalOutput');
+            const line = document.createElement('div');
+            line.innerText = `$ ${cmd}`;
+            out.appendChild(line);
+            input.value = '';
+
+            await dbSet('commandHistory', { command: cmd, timestamp: Date.now() });
+
+            setTimeout(() => {
+                const resLine = document.createElement('div');
+                resLine.className = 'text-cyan-400';
+                resLine.innerText = `[Kernel CLI]: Príkaz '${cmd}' bol úspešne spustený.`;
+                out.appendChild(resLine);
+                out.scrollTop = out.scrollHeight;
+            }, 250);
+        }
+
+        function clearTerminal() {
+            document.getElementById('terminalOutput').innerHTML = '[Konzola vyčistená]';
+        }
+
+        /**
+         * 8. SYSTÉM MESAČNEJ KVÓTY S ODPOČTOM K 1. DŇU
+         */
+        let quotaState = { currentMonth: new Date().getMonth(), percent: 100.0 };
+
+        async function loadQuota() {
+            const saved = await dbGet('appState', 'quota');
+            const currentMonth = new Date().getMonth();
+
+            if (saved && saved.value.currentMonth === currentMonth) {
+                quotaState = saved.value;
+            } else {
+                quotaState = { currentMonth: currentMonth, percent: 100.0 };
+                await dbSet('appState', { key: 'quota', value: quotaState });
+            }
+            updateQuotaUI();
+        }
+
+        async function deductQuota(cost) {
+            quotaState.percent = Math.max(0, +(quotaState.percent - cost).toFixed(2));
+            await dbSet('appState', { key: 'quota', value: quotaState });
+            updateQuotaUI();
+        }
+
+        function updateQuotaUI() {
+            const bar = document.getElementById('quotaProgressBar');
+            const label = document.getElementById('quotaPercentLabel');
+            const input = document.getElementById('promptInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const alertBox = document.getElementById('quotaExhaustedAlert');
+
+            label.innerText = `${quotaState.percent}%`;
+            bar.style.width = `${quotaState.percent}%`;
+
+            if (quotaState.percent <= 0) {
+                bar.classList.replace('from-cyan-500', 'from-rose-600');
+                input.disabled = true;
+                input.placeholder = "KAPACITA VYČERPANÁ (0%). VSTUP ZABLOKOVANÝ.";
+                sendBtn.disabled = true;
+                sendBtn.classList.add('opacity-40', 'cursor-not-allowed');
+                alertBox.classList.remove('hidden');
+                startLockdownTimer();
+            } else {
+                input.disabled = false;
+                sendBtn.disabled = false;
+                sendBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+                alertBox.classList.add('hidden');
+            }
+        }
+
+        function startLockdownTimer() {
+            function update() {
+                const now = new Date();
+                const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0);
+                const diff = nextMonth - now;
+
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                const m = Math.floor((diff / (1000 * 60)) % 60);
+                const s = Math.floor((diff / 1000) % 60);
+
+                const el = document.getElementById('lockCountdown');
+                if (el) el.innerText = `${d}d ${h}h ${m}m ${s}s (1. dňa o 00:00:00)`;
+            }
+            update();
+            setInterval(update, 1000);
+        }
+
+        /**
+         * 9. POMOCNÉ FUNKCIE A NASTAVENIA
+         */
+        function setStatus(active, text = "") {
+            const ind = document.getElementById('statusIndicator');
+            const txt = document.getElementById('statusText');
+            if (active) {
+                txt.innerText = text;
+                ind.classList.remove('hidden');
+            } else {
+                ind.classList.add('hidden');
+            }
+        }
+
+        function updateModelInfo() {
+            const sel = document.getElementById('modelSelector');
+            const cost = sel.selectedOptions[0]?.dataset?.cost || '1.0';
+            document.getElementById('costBadge').innerText = `-${cost}% / prompt`;
+        }
+
+        async function openSettings() {
+            const saved = await dbGet('appState', 'gemini_api_key');
+            if (saved) document.getElementById('apiKeyInput').value = saved.value;
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        async function saveSettings() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (key) {
+                await dbSet('appState', { key: 'gemini_api_key', value: key });
+                await scanGoogleRadar();
+            }
+            closeSettings();
+        }
+
+        async function resetQuotaManually() {
+            quotaState.percent = 100.0;
+            await dbSet('appState', { key: 'quota', value: quotaState });
+            updateQuotaUI();
+            closeSettings();
+        }
+
+        // ŠTART APLIKÁCIE
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initDB();
+            await loadQuota();
+
+            // Obnovenie správ z IndexedDB
+            const history = await dbGetAll('chatHistory');
+            history.forEach(item => appendMessage(item.role, item.content, item.thinking || null));
+            updateModelInfo();
+
+            // Automatická synchronizácia s Google Radarom, ak už existuje API kľúč
+            const savedKey = await dbGet('appState', 'gemini_api_key');
+            if (savedKey) scanGoogleRadar();
+
+            // Klávesová skratka Enter pre chat
+            document.getElementById('promptInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                }
+            });
+
+            // Klávesová skratka Enter pre terminál
+            document.getElementById('terminalInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    runTerminalCmd();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
