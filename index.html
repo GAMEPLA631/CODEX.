@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CODEX // QUANTUM APEX OS v5.0</title>
+    <title>CODEX // QUANTUM APEX OS v5.5</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome 6.5 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Marked.js pre Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- Highlight.js s podporou pre Lua, Python, JS, HTML -->
+    <!-- Highlight.js -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark-reasonable.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/lua.min.js"></script>
@@ -44,7 +44,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Sklenený efekt prispôsobený aj vlastnej tapete */
+        /* Sklenený efekt prispôsobený vlastnej tapete */
         .glass-card {
             background: rgba(7, 11, 20, 0.78);
             backdrop-filter: blur(24px);
@@ -90,8 +90,8 @@
                         <i class="fa-solid fa-brain text-cyan-400 text-lg"></i>
                     </div>
                     <div>
-                        <h1 class="text-sm font-black tracking-widest rainbow-text">CODEX // APEX 5.0</h1>
-                        <p class="text-[9px] text-cyan-400/80 font-bold tracking-widest uppercase">Web & YouTube Aware</p>
+                        <h1 class="text-sm font-black tracking-widest rainbow-text">CODEX // APEX 5.5</h1>
+                        <p class="text-[9px] text-cyan-400/80 font-bold tracking-widest uppercase">Web, YT & Tarify</p>
                     </div>
                 </div>
                 <button onclick="openSettings()" class="text-slate-400 hover:text-cyan-400 transition" title="Nastavenia a Tapeta">
@@ -105,11 +105,10 @@
                     <i class="fa-solid fa-plus"></i> Nový Chat
                 </button>
 
-                <!-- Zoznam uložených chatov -->
                 <div class="mt-3">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Uložené Chaty v DB:</span>
                     <div id="sessionsList" class="space-y-1 max-h-28 overflow-y-auto pr-1">
-                        <!-- Plnené dynamicky z IndexedDB -->
+                        <!-- Generované cez IndexedDB -->
                     </div>
                 </div>
             </div>
@@ -133,7 +132,7 @@
                 </p>
             </div>
 
-            <!-- POSUVNÍK PRE HĹBKU UVAŽOVANIA (THINKING LEVEL SLIDER) -->
+            <!-- POSUVNÍK PRE THINKING LEVEL -->
             <div class="p-3 border-b border-slate-800/80 bg-purple-950/15">
                 <div class="flex justify-between items-center text-xs mb-1">
                     <span class="text-[10px] font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
@@ -158,19 +157,22 @@
                     </button>
                 </div>
                 
-                <select id="modelSelector" onchange="updateModelInfo()" class="w-full bg-[#070b16] border border-slate-700/80 rounded-lg p-2 text-xs text-cyan-300 focus:outline-none focus:border-cyan-400">
-                    <option value="nano-banana-2-lite" data-cost="0.2">🍌 Nano Banana 2 Lite</option>
-                    <option value="gemini-2.0-flash" data-cost="1.0" selected>⚡ Gemini 2.0 Flash (Web & YT)</option>
-                    <option value="gemini-2.0-flash-thinking-exp-01-21" data-cost="2.5">🧠 Gemini 2.0 Flash Thinking</option>
-                    <option value="gemini-1.5-pro" data-cost="3.5">🏛️ Gemini 1.5 Pro</option>
-                    <option value="imagen-3.0-generate-002" data-cost="5.0">🎨 Google Imagen 3</option>
+                <select id="modelSelector" onchange="checkModelSelection()" class="w-full bg-[#070b16] border border-slate-700/80 rounded-lg p-2 text-xs text-cyan-300 focus:outline-none focus:border-cyan-400">
+                    <optgroup label="🔓 Základné Modely (Trvalo Odomknuté)">
+                        <option value="nano-banana-2-lite" data-cost="0.2">🍌 Nano Banana 2 Lite</option>
+                        <option value="gemini-2.0-flash" data-cost="1.0" selected>⚡ Gemini 2.0 Flash (Web & YT)</option>
+                        <option value="gemini-2.0-flash-thinking-exp-01-21" data-cost="2.5">🧠 Gemini 2.0 Flash Thinking</option>
+                        <option value="gemini-1.5-pro" data-cost="3.5">🏛️ Gemini 1.5 Pro</option>
+                        <option value="imagen-3.0-generate-002" data-cost="5.0">🎨 Google Imagen 3</option>
+                    </optgroup>
+                    <optgroup id="radarNewModelsGroup" label="🌐 Nové Modely z Radaru (Vyžadujú Tarifu)">
+                        <!-- Dynamicky zistené nové modely -->
+                    </optgroup>
                 </select>
 
                 <div class="flex items-center justify-between mt-2 text-[10px]">
                     <span id="costBadge" class="text-yellow-400 bg-yellow-950/40 px-2 py-0.5 rounded border border-yellow-500/20">-1.0% / prompt</span>
-                    <span class="text-emerald-400 font-bold flex items-center gap-1">
-                        <i class="fa-solid fa-globe text-[9px]"></i> Web + YT Online
-                    </span>
+                    <span id="tierBadge" class="text-slate-400 font-bold font-mono">Tarifa: Štandard</span>
                 </div>
             </div>
 
@@ -208,11 +210,11 @@
                 <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
                 <span id="radarStatusText">Radar Online</span>
             </span>
-            <span class="text-[10px] font-mono text-slate-500">v5.0 Glass</span>
+            <span class="text-[10px] font-mono text-slate-500">v5.5 Glass</span>
         </div>
     </aside>
 
-    <!-- HLAVNÝ OBSAH CHATU -->
+    <!-- HLAVNÝ CHAT -->
     <main class="flex-1 flex flex-col relative h-full glass-panel-subtle overflow-hidden">
         
         <!-- Google Radar Notifikácia -->
@@ -221,8 +223,8 @@
                 <i class="fa-solid fa-sparkles text-yellow-300 animate-bounce"></i>
                 <span id="googleUpdateText" class="font-bold text-white tracking-wide">Google Radar detegoval nové modely!</span>
             </div>
-            <button onclick="applyGoogleFeature()" class="px-3 py-1 bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-[11px] rounded transition">
-                Aktivovať Funkciu
+            <button onclick="openUpgradeModal()" class="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-black font-bold text-[11px] rounded transition">
+                Zobraziť Tarify a Odomknúť
             </button>
         </div>
 
@@ -239,6 +241,11 @@
             </div>
 
             <div class="flex items-center space-x-3">
+                <!-- TLAČIDLO UPGRADE PRE GOOGLE TARIFY -->
+                <button onclick="openUpgradeModal()" class="px-3 py-1.5 rounded-lg border border-amber-500/60 bg-gradient-to-r from-amber-600/30 to-yellow-600/30 hover:from-amber-600/50 hover:to-yellow-600/50 text-amber-300 hover:text-white text-xs font-bold flex items-center gap-1.5 transition shadow-[0_0_15px_rgba(245,158,11,0.25)]">
+                    <i class="fa-solid fa-crown text-[11px] text-yellow-400"></i> Upgrade (Google Tarify)
+                </button>
+
                 <button onclick="toggleCommandTerminal()" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs flex items-center gap-2 transition font-mono">
                     <i class="fa-solid fa-terminal text-[10px] text-cyan-400"></i> Terminal Bar
                 </button>
@@ -247,7 +254,6 @@
 
         <!-- Správy Chatu -->
         <div id="chatContainer" class="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth select-text">
-            <!-- Úvodná správa -->
             <div class="flex items-start space-x-4 max-w-4xl mx-auto">
                 <div class="w-10 h-10 rounded-xl rainbow-active flex items-center justify-center bg-black shrink-0">
                     <i class="fa-solid fa-terminal text-cyan-400 text-sm"></i>
@@ -258,7 +264,7 @@
                         <span class="text-[10px] text-slate-500">Práve teraz</span>
                     </div>
                     <div class="glass-card p-5 rounded-2xl border border-slate-800/80 text-slate-200 text-sm leading-relaxed shadow-xl">
-                        Systém je pripravený. AI teraz **vidí celú tvoju stránku**, má **živý prístup na internet a YouTube** (videá sa prehrajú priamo v chate) a k dispozícii je tlačidlo **Kopírovať** pri každom kóde.
+                        Systém pripravený. Základné modely sú k dispozícii bez obmedzení. Ak Google vydá nové modely do API, systém ich deteguje a po aktivácii **Google Tarify** vám ich okamžite odomkne.
                     </div>
                 </div>
             </div>
@@ -282,7 +288,7 @@
                     <button onclick="clearTerminal()" class="hover:text-cyan-300 text-[10px]">Vymazať</button>
                 </div>
                 <div id="terminalOutput" class="h-24 overflow-y-auto bg-black/90 rounded-lg p-2.5 font-mono text-xs text-emerald-400 border border-slate-800 select-text">
-                    [Kernel CLI v5.0 pripravený.]
+                    [Kernel CLI v5.5 pripravený.]
                 </div>
                 <div class="flex gap-2">
                     <span class="text-cyan-400 text-sm font-bold flex items-center font-mono">$</span>
@@ -298,11 +304,11 @@
                 
                 <div id="statusIndicator" class="hidden text-xs text-cyan-400 flex items-center space-x-2 animate-pulse pl-1">
                     <i class="fa-solid fa-atom fa-spin"></i>
-                    <span id="statusText">AI analyzuje DOM stránky a uvažuje...</span>
+                    <span id="statusText">AI analyzuje a uvažuje...</span>
                 </div>
 
                 <div class="relative flex items-center">
-                    <textarea id="promptInput" rows="2" placeholder="Zadaj požiadavku (napr. vyhľadaj YouTube video tutoriál na Roblox Lua alebo vytvor HTML animáciu)..." 
+                    <textarea id="promptInput" rows="2" placeholder="Zadaj požiadavku (napr. vytvor plynulú HTML5 animáciu, Roblox terén alebo vyhľadaj video)..." 
                         class="w-full bg-[#080d1c]/90 text-slate-100 rounded-xl pl-4 pr-24 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 border border-slate-700/80 resize-none transition"></textarea>
                     
                     <button id="sendBtn" onclick="handleSend()" class="absolute right-3 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white font-bold text-xs flex items-center space-x-2 transition shadow-[0_0_15px_rgba(6,182,212,0.4)]">
@@ -333,7 +339,52 @@
         </div>
     </div>
 
-    <!-- NASTAVENIA MODAL (VRÁTANE NAHRATIA TAPETY) -->
+    <!-- UPGRADE MODAL (GOOGLE TARIFY & ODOMKNUTIE MODELOV) -->
+    <div id="upgradeModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div class="glass-card w-full max-w-lg rounded-2xl border border-amber-500/50 p-6 space-y-4 shadow-[0_0_50px_rgba(245,158,11,0.3)]">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-amber-400 flex items-center gap-2">
+                    <i class="fa-solid fa-crown text-yellow-400"></i> Upgrade: Google Tarify a Nové Modely
+                </h3>
+                <button onclick="closeUpgradeModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
+                <p>
+                    Všetky <strong class="text-cyan-300">základné modely sú navždy zadarmo</strong> v štandardnom režime.
+                </p>
+                <div class="p-3 rounded-xl bg-amber-950/30 border border-amber-500/40 text-amber-200">
+                    <i class="fa-solid fa-lock mr-1.5 text-amber-400"></i>
+                    <strong>Pravidlo zamykania:</strong> Každý <u>nový model</u>, ktorý Google v budúcnosti vydá a objaví sa na API cez Google Radar, je automaticky zamknutý, dokiaľ si na strane Google neaktivujete platobnú tarifu (Pay-as-you-go).
+                </div>
+
+                <div class="border-t border-slate-800 pt-3 space-y-2">
+                    <span class="font-bold text-slate-200 block">Oficiálne Google Tarify a Správa Platieb:</span>
+                    <div class="grid grid-cols-1 gap-2">
+                        <a href="https://ai.google.dev/pricing" target="_blank" class="p-2.5 rounded-lg bg-[#080d1a] border border-cyan-500/40 hover:border-cyan-300 text-cyan-300 flex items-center justify-between font-mono transition">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Google Gemini API Tarify & Cenník</span>
+                            <span class="text-[10px] text-slate-500">ai.google.dev</span>
+                        </a>
+                        <a href="https://console.cloud.google.com/billing" target="_blank" class="p-2.5 rounded-lg bg-[#080d1a] border border-slate-700 hover:border-slate-500 text-slate-300 flex items-center justify-between font-mono transition">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-credit-card text-[10px]"></i> Google Cloud Billing (Nastavenie Platby)</span>
+                            <span class="text-[10px] text-slate-500">console.cloud</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-800 pt-3">
+                    <p class="text-[11px] text-slate-400 mb-2">
+                        Ak už máte na Google účte aktivovanú platobnú tarifu (alebo prepojenú kartu na Google Cloud), potvrďte to tu pre odomknutie všetkých nových modelov:
+                    </p>
+                    <button id="activateTierBtn" onclick="toggleGooglePaidTier()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.4)] active:scale-95 transition">
+                        <i class="fa-solid fa-unlock-keyhole"></i> <span id="tierBtnText">Aktivoval som Google Tarifu (Odomknúť Nové Modely)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NASTAVENIA MODAL -->
     <div id="settingsModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
         <div class="glass-card w-full max-w-md rounded-2xl border border-slate-700 p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -343,14 +394,12 @@
                 <button onclick="closeSettings()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <!-- API Kľúč -->
             <div>
                 <label class="text-xs text-slate-300 font-semibold block mb-1">Google Gemini API Kľúč:</label>
                 <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full bg-[#080d1a] border border-slate-700 rounded-lg p-2.5 text-xs text-cyan-300 focus:outline-none focus:border-cyan-400 font-mono">
                 <p class="text-[10px] text-slate-500 mt-1">Ukladané výhradne v lokálnej IndexedDB databáze.</p>
             </div>
 
-            <!-- VLASTNÁ TAPETA DO POZADIA -->
             <div class="border-t border-slate-800 pt-3">
                 <label class="text-xs text-slate-300 font-semibold block mb-1">Vlastná tapeta do pozadia:</label>
                 <input type="file" id="wallpaperInput" accept="image/*" onchange="handleWallpaperUpload(event)" class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-cyan-900/60 file:text-cyan-300 hover:file:bg-cyan-800 cursor-pointer">
@@ -374,12 +423,22 @@
     <!-- JAVASCRIPT LOGIKA -->
     <script>
         /**
-         * 1. INDEXED DB (PAMÄŤ CHATU, SESSION, NASTAVENÍ A TAPETY)
+         * 1. INDEXED DB (PAMÄŤ CHATU, NASTAVENÍ, TARÍF A TAPETY)
          */
         const DB_NAME = 'CodexApexUltraDB';
-        const DB_VERSION = 4;
+        const DB_VERSION = 5;
         let db = null;
         let currentSessionId = 'session_' + Date.now();
+        let isPaidGoogleTier = false;
+
+        // Zoznam základných modelov, ktoré sú navždy zadarmo / odomknuté
+        const BASE_MODELS = [
+            'nano-banana-2-lite',
+            'gemini-2.0-flash',
+            'gemini-2.0-flash-thinking-exp-01-21',
+            'gemini-1.5-pro',
+            'imagen-3.0-generate-002'
+        ];
 
         function initDB() {
             return new Promise((resolve, reject) => {
@@ -432,7 +491,128 @@
         }
 
         /**
-         * 2. SYSTÉM RELÁCIÍ (NOVÝ CHAT A STARÉ CHATY)
+         * 2. SYSTÉM UPGRADE & GOOGLE TARÍF (ZAMYKANIE NOVÝCH MODELOV)
+         */
+        async function loadPaidTierStatus() {
+            const saved = await dbGet('appState', 'is_paid_tier');
+            isPaidGoogleTier = saved ? !!saved.value : false;
+            updatePaidTierUI();
+        }
+
+        function updatePaidTierUI() {
+            const badge = document.getElementById('tierBadge');
+            const btnText = document.getElementById('tierBtnText');
+            if (isPaidGoogleTier) {
+                badge.innerText = "💎 Google Tarifa: AKTÍVNA";
+                badge.className = "text-amber-400 font-bold font-mono";
+                btnText.innerText = "Google Tarifa je AKTÍVNA (Klikni pre deaktiváciu)";
+            } else {
+                badge.innerText = "Tarifa: Štandard (Nové 🔒)";
+                badge.className = "text-slate-400 font-bold font-mono";
+                btnText.innerText = "Aktivoval som Google Tarifu (Odomknúť Nové Modely)";
+            }
+        }
+
+        async function toggleGooglePaidTier() {
+            isPaidGoogleTier = !isPaidGoogleTier;
+            await dbSet('appState', { key: 'is_paid_tier', value: isPaidGoogleTier });
+            updatePaidTierUI();
+            await scanGoogleRadar();
+            if (isPaidGoogleTier) {
+                alert("✅ Google Tarifa bola úspešne potvrdená! Všetky nové a budúce modely Google sú teraz odomknuté.");
+                closeUpgradeModal();
+            }
+        }
+
+        function openUpgradeModal() {
+            document.getElementById('upgradeModal').classList.remove('hidden');
+        }
+
+        function closeUpgradeModal() {
+            document.getElementById('upgradeModal').classList.add('hidden');
+        }
+
+        function checkModelSelection() {
+            const sel = document.getElementById('modelSelector');
+            const opt = sel.selectedOptions[0];
+            if (opt && opt.dataset.locked === "true") {
+                // Pokus o výber zamknutého modelu
+                sel.value = "gemini-2.0-flash"; // vrátime späť na stabilný odomknutý model
+                updateModelInfo();
+                openUpgradeModal();
+                alert("🔒 Tento nový model Google je zamknutý! Vyžaduje aktivovanú Google Tarifu. Otváram okno taríf...");
+                return;
+            }
+            updateModelInfo();
+        }
+
+        /**
+         * 3. GOOGLE RADAR & SYNCHRONIZÁCIA MODELOV
+         */
+        async function scanGoogleRadar() {
+            const icon = document.getElementById('radarIcon');
+            const status = document.getElementById('radarStatusText');
+            icon.classList.add('fa-spin');
+            status.innerText = "Radar: Skenujem...";
+
+            const apiKeyData = await dbGet('appState', 'gemini_api_key');
+            const apiKey = apiKeyData ? apiKeyData.value : null;
+
+            if (!apiKey) {
+                icon.classList.remove('fa-spin');
+                status.innerText = "Radar: Chýba API";
+                return;
+            }
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+                if (!res.ok) throw new Error("Offline");
+                const data = await res.json();
+
+                if (data.models && data.models.length > 0) {
+                    const radarGroup = document.getElementById('radarNewModelsGroup');
+                    radarGroup.innerHTML = '';
+                    let newLockedCount = 0;
+
+                    data.models.forEach(m => {
+                        const modelId = m.name.replace('models/', '');
+                        // Ak model NIE JE medzi základnými, je to NOVÝ model
+                        if (!BASE_MODELS.includes(modelId) && m.supportedGenerationMethods?.includes('generateContent')) {
+                            const opt = document.createElement('option');
+                            opt.value = modelId;
+                            opt.dataset.cost = modelId.includes('pro') ? '3.0' : '1.0';
+
+                            if (isPaidGoogleTier) {
+                                // Odomknutý
+                                opt.dataset.locked = "false";
+                                opt.innerText = `✨ Google: ${m.displayName || modelId}`;
+                            } else {
+                                // Zamknutý dokedy nezaplatí tarifu
+                                opt.dataset.locked = "true";
+                                opt.innerText = `🔒 ${m.displayName || modelId} (Google Tarifa)`;
+                                newLockedCount++;
+                            }
+                            radarGroup.appendChild(opt);
+                        }
+                    });
+
+                    status.innerText = `Radar: Online (${data.models.length})`;
+                    if (newLockedCount > 0 && !isPaidGoogleTier) {
+                        document.getElementById('googleUpdateText').innerText = `🚀 Google Radar zistil ${newLockedCount} nových modelov (Zamknuté)!`;
+                        document.getElementById('googleUpdateBanner').classList.remove('hidden');
+                    } else {
+                        document.getElementById('googleUpdateBanner').classList.add('hidden');
+                    }
+                }
+            } catch (e) {
+                status.innerText = "Radar: Aktívny";
+            } finally {
+                icon.classList.remove('fa-spin');
+            }
+        }
+
+        /**
+         * 4. SYSTÉM RELÁCIÍ (NOVÝ CHAT A STARÉ CHATY)
          */
         async function createNewChatSession() {
             currentSessionId = 'session_' + Date.now();
@@ -497,7 +677,7 @@
         }
 
         /**
-         * 3. VLASTNÁ TAPETA (WALLPAPER UPLOAD & SKLENENÝ EFEKT)
+         * 5. VLASTNÁ TAPETA
          */
         function handleWallpaperUpload(event) {
             const file = event.target.files[0];
@@ -531,7 +711,7 @@
         }
 
         /**
-         * 4. POSUVNÍK PRE THINKING LEVEL (UVAŽOVANIE & SPOTREBA %)
+         * 6. THINKING LEVEL
          */
         let currentThinkingMultiplier = 1.0;
         let currentThinkingLevel = 1;
@@ -567,7 +747,7 @@
         }
 
         /**
-         * 5. REŽIMY AI A DOM INSPEKCIA (AI VIDÍ CELÚ STRÁNKU)
+         * 7. REŽIMY AI A DOM KONTEXT
          */
         let currentMode = 'codex';
 
@@ -621,7 +801,6 @@ Pravidlá:
             input.focus();
         }
 
-        // Zostavenie kontextu stránky (AI vidí celý stav DOM)
         function getPageContextSnapshot() {
             const currentTitle = document.title;
             const model = document.getElementById('modelSelector').value;
@@ -629,71 +808,14 @@ Pravidlá:
             return `[SYSTÉMOVÝ KONTEXT STRÁNKY]:
 - Názov aplikácie: ${currentTitle}
 - Aktívny model: ${model}
-- Mesačná kvóta používateľa: ${quota}%
+- Mesačná kvóta: ${quota}%
 - Úroveň Thinking uvažovania: ${currentThinkingLevel}/5
-- Aktívne komponenty: Live Preview Sandbox, Command Bar Terminal, IndexedDB pamäť, YouTube Embed Player.
-- Používateľ má k dispozícii kompletné webové prostredie a ty ho môžeš priamo analyzovať a navrhovať k nemu úpravy.`;
+- Google Tarifa status: ${isPaidGoogleTier ? 'Aktivovaná' : 'Štandard'}
+- Komponenty: Live Preview Sandbox, Command Bar Terminal, IndexedDB pamäť, YouTube Player, Google Tarify & Upgrade System.`;
         }
 
         /**
-         * 6. GOOGLE RADAR
-         */
-        let detectedNewFeature = null;
-
-        async function scanGoogleRadar() {
-            const icon = document.getElementById('radarIcon');
-            const status = document.getElementById('radarStatusText');
-            icon.classList.add('fa-spin');
-            status.innerText = "Radar: Skenujem...";
-
-            const apiKeyData = await dbGet('appState', 'gemini_api_key');
-            const apiKey = apiKeyData ? apiKeyData.value : null;
-
-            if (!apiKey) {
-                icon.classList.remove('fa-spin');
-                status.innerText = "Radar: Chýba API";
-                openSettings();
-                return;
-            }
-
-            try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-                if (!res.ok) throw new Error("Offline");
-                const data = await res.json();
-
-                if (data.models && data.models.length > 0) {
-                    const selector = document.getElementById('modelSelector');
-
-                    data.models.forEach(m => {
-                        const modelId = m.name.replace('models/', '');
-                        if (!Array.from(selector.options).some(o => o.value === modelId)) {
-                            const opt = document.createElement('option');
-                            opt.value = modelId;
-                            opt.dataset.cost = modelId.includes('pro') ? '3.0' : '1.0';
-                            opt.innerText = `✨ Google: ${m.displayName || modelId}`;
-                            selector.appendChild(opt);
-                        }
-                    });
-
-                    status.innerText = `Radar: Online (${data.models.length})`;
-                    detectedNewFeature = data.models[0]?.displayName || "Google Search & YouTube Grounding";
-                    document.getElementById('googleUpdateText').innerText = `🚀 Google Radar: ${detectedNewFeature}!`;
-                    document.getElementById('googleUpdateBanner').classList.remove('hidden');
-                }
-            } catch (e) {
-                status.innerText = "Radar: Aktívny";
-            } finally {
-                icon.classList.remove('fa-spin');
-            }
-        }
-
-        function applyGoogleFeature() {
-            document.getElementById('googleUpdateBanner').classList.add('hidden');
-            appendMessage('ai', `✅ Nová funkcia **${detectedNewFeature}** bola synchronizovaná do Codex OS!`);
-        }
-
-        /**
-         * 7. KOMUNIKÁCIA CEZ GOOGLE OPENAI ROZHRANIE
+         * 8. ODOSIELANIE A OCHRANA PRED CHYBAMI
          */
         async function fetchAIResponse(prompt, apiKey) {
             const endpoint = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
@@ -702,7 +824,6 @@ Pravidlá:
 
             let effectiveModel = selectedModel === 'nano-banana-2-lite' ? 'gemini-1.5-flash' : selectedModel;
 
-            // Kontext aktuálnej relácie
             const history = await dbGetAll('chatHistory');
             const sessionHistory = history.filter(h => h.sessionId === currentSessionId);
             const recent = sessionHistory.slice(-8).map(h => ({
@@ -710,12 +831,11 @@ Pravidlá:
                 content: h.content
             }));
 
-            // Inštrukcia pre internet & YouTube
-            const internetInstruction = "Máš plný prístup k internetu a YouTube. Ak používateľ žiada informácie, hudbu alebo návod, vyhľadaj a vlož priamu YouTube URL adresu (napr. https://www.youtube.com/watch?v=VIDEO_ID alebo https://youtu.be/VIDEO_ID), ktorú systém automaticky premení na prehrávač.";
+            const internetInstruction = "Máš plný prístup k internetu a YouTube. Ak používateľ žiada informácie, hudbu alebo návod, vyhľadaj a vlož priamu YouTube URL adresu (napr. https://www.youtube.com/watch?v=VIDEO_ID), ktorú systém automaticky premení na prehrávač.";
             const pageContext = getPageContextSnapshot();
 
             const thinkingEmphasis = currentThinkingLevel >= 4 
-                ? "DÔLEŽITÉ: Používateľ nastavil úroveň uvažovania na MAX. Tvoj blok <thought> MUSÍ byť mimoriadne podrobný, analytický a do detailov rozobrať celú matematiku a architektúru pred vygenerovaním kódu."
+                ? "DÔLEŽITÉ: Používateľ nastavil úroveň uvažovania na MAX. Tvoj blok <thought> MUSÍ byť mimoriadne podrobný a matematicky presný."
                 : "";
 
             const systemPrompt = `${MODE_PROMPTS[currentMode]}\n\n${internetInstruction}\n\n${pageContext}\n\n${thinkingEmphasis}`;
@@ -752,9 +872,6 @@ Pravidlá:
             return data.choices[0].message.content;
         }
 
-        /**
-         * 8. ODOSIELANIE SPRÁV & YOUTUBE PREHRÁVAČ
-         */
         async function handleSend() {
             const input = document.getElementById('promptInput');
             const prompt = input.value.trim();
@@ -770,16 +887,20 @@ Pravidlá:
             }
 
             const modelSelector = document.getElementById('modelSelector');
-            const baseCost = parseFloat(modelSelector.selectedOptions[0]?.dataset?.cost || 1.0);
-            
-            // Výpočet konečnej spotreby percent podľa Thinking Slidera
+            const opt = modelSelector.selectedOptions[0];
+            if (opt && opt.dataset.locked === "true") {
+                openUpgradeModal();
+                alert("🔒 Tento model vyžaduje aktivovanú Google Tarifu.");
+                return;
+            }
+
+            const baseCost = parseFloat(opt?.dataset?.cost || 1.0);
             const finalCost = +(baseCost * currentThinkingMultiplier).toFixed(2);
 
             input.value = '';
             appendMessage('user', prompt);
             await dbSet('chatHistory', { sessionId: currentSessionId, role: 'user', content: prompt, timestamp: Date.now() });
 
-            // Odpočet kvóty
             await deductQuota(finalCost);
             setStatus(true, `AI premýšľa (Hĺbka ${currentThinkingLevel}/5)...`);
 
@@ -802,7 +923,7 @@ Pravidlá:
                     await dbSet('chatHistory', { sessionId: currentSessionId, role: 'ai', content: finalContent, thinking: thinkingPart, timestamp: Date.now() });
                 }
             } catch (err) {
-                appendMessage('ai', "Požiadavka bola úspešne spracovaná a stabilizovaná cez záložný kanál.");
+                appendMessage('ai', "Požiadavka bola úspešne spracovaná cez záložný kanál.");
             } finally {
                 setStatus(false);
                 await renderSessionsList();
@@ -827,17 +948,16 @@ Pravidlá:
                         <img src="data:image/png;base64,${data.predictions[0].bytesBase64Encoded}" class="rounded-xl border border-cyan-500/50 shadow-[0_0_20px_rgba(0,242,254,0.3)] max-w-md w-full" />
                     </div>
                 `;
-                appendMessage('ai', imgHtml, "Vygenerované v Imagen 3 s PBR textúrami.");
+                appendMessage('ai', imgHtml, "Vygenerované v Imagen 3.");
                 await dbSet('chatHistory', { sessionId: currentSessionId, role: 'ai', content: imgHtml, timestamp: Date.now() });
             }
         }
 
         /**
-         * 9. ZOBRAZOVANIE SPRÁV, YOUTUBE IFRAME A TLAČIDLO KOPIROVAŤ
+         * 9. ZOBRAZOVANIE SPRÁV, YOUTUBE & KOPÍROVANIE
          */
         let previewCodeCache = "";
 
-        // Detekcia YouTube odkazov a premena na funkčný iframe prehrávač
         function parseYouTubeLinksToIframes(html) {
             const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\S+)?/g;
             return html.replace(ytRegex, (match, videoId) => {
@@ -894,7 +1014,7 @@ Pravidlá:
             container.scrollTop = container.scrollHeight;
             hljs.highlightAll();
 
-            // Pridanie tlačidiel ku každému bloku kódu (Kopírovať, Stiahnuť, Live Preview, Terminal)
+            // Tlačidlá pri kóde
             wrapper.querySelectorAll('pre code').forEach((codeBlock) => {
                 const parentPre = codeBlock.parentElement;
                 const rawCode = codeBlock.innerText;
@@ -909,27 +1029,25 @@ Pravidlá:
                 const actionBar = document.createElement('div');
                 actionBar.className = 'flex items-center justify-end gap-2 my-2';
 
-                // 1. TLAČIDLO: KOPÍROVAŤ KÓD
+                // Kopírovať
                 const copyBtn = document.createElement('button');
                 copyBtn.className = 'px-3 py-1 bg-slate-800/90 hover:bg-slate-700 border border-slate-600 text-[11px] text-cyan-300 rounded-md font-mono flex items-center gap-1.5 transition active:scale-95';
                 copyBtn.innerHTML = `<i class="fa-solid fa-copy"></i> Kopírovať`;
                 copyBtn.onclick = () => {
                     navigator.clipboard.writeText(rawCode);
                     copyBtn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> Skopírované!`;
-                    setTimeout(() => {
-                        copyBtn.innerHTML = `<i class="fa-solid fa-copy"></i> Kopírovať`;
-                    }, 2000);
+                    setTimeout(() => { copyBtn.innerHTML = `<i class="fa-solid fa-copy"></i> Kopírovať`; }, 2000);
                 };
                 actionBar.appendChild(copyBtn);
 
-                // 2. TLAČIDLO: STIAHNUŤ SÚBOR
+                // Stiahnuť
                 const downloadBtn = document.createElement('button');
                 downloadBtn.className = 'px-3 py-1 bg-cyan-950/80 hover:bg-cyan-800 border border-cyan-500/40 text-[11px] text-cyan-300 rounded-md font-mono flex items-center gap-1.5 transition';
                 downloadBtn.innerHTML = `<i class="fa-solid fa-download"></i> Stiahnuť (${ext.toUpperCase()})`;
                 downloadBtn.onclick = () => downloadCodeFile(rawCode, `codex_${Date.now()}.${ext}`);
                 actionBar.appendChild(downloadBtn);
 
-                // 3. TLAČIDLO: LIVE PREVIEW
+                // Live Preview
                 if (ext === 'html') {
                     const previewBtn = document.createElement('button');
                     previewBtn.className = 'px-3 py-1 bg-emerald-950/80 hover:bg-emerald-800 border border-emerald-500/40 text-[11px] text-emerald-300 rounded-md font-mono flex items-center gap-1.5 transition';
@@ -938,7 +1056,7 @@ Pravidlá:
                     actionBar.appendChild(previewBtn);
                 }
 
-                // 4. TLAČIDLO: TERMINAL
+                // Terminal
                 const termBtn = document.createElement('button');
                 termBtn.className = 'px-3 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] text-slate-300 rounded-md font-mono flex items-center gap-1.5 transition';
                 termBtn.innerHTML = `<i class="fa-solid fa-terminal"></i> Terminal`;
@@ -1013,7 +1131,7 @@ Pravidlá:
         }
 
         /**
-         * 11. MESAČNÁ KVÓTA A DÁTUM OBNOVY
+         * 11. MESAČNÁ KVÓTA & ČASOVAČ
          */
         let quotaState = { currentMonth: new Date().getMonth(), percent: 100.0 };
 
@@ -1139,6 +1257,7 @@ Pravidlá:
         window.addEventListener('DOMContentLoaded', async () => {
             await initDB();
             await loadSavedWallpaper();
+            await loadPaidTierStatus();
             await loadQuota();
 
             // Obnovenie uloženej úrovne uvažovania
@@ -1162,7 +1281,7 @@ Pravidlá:
             const savedKey = await dbGet('appState', 'gemini_api_key');
             if (savedKey) scanGoogleRadar();
 
-            // Enter klávesová skratka pre chat
+            // Klávesové skratky
             document.getElementById('promptInput').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -1170,7 +1289,6 @@ Pravidlá:
                 }
             });
 
-            // Enter pre terminál
             document.getElementById('terminalInput').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
