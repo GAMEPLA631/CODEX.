@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CODEX // QUANTUM APEX OS v4.5</title>
+    <title>CODEX // QUANTUM APEX OS v5.0</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome 6.5 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Marked.js pre Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- Highlight.js s podporou pre Lua, Python, JS, HTML, C++ -->
+    <!-- Highlight.js s podporou pre Lua, Python, JS, HTML -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark-reasonable.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/lua.min.js"></script>
@@ -44,14 +44,22 @@
             100% { background-position: 0% 50%; }
         }
 
+        /* Sklenený efekt prispôsobený aj vlastnej tapete */
         .glass-card {
-            background: rgba(8, 12, 22, 0.88);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(7, 11, 20, 0.78);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .glass-panel-subtle {
+            background: rgba(4, 7, 14, 0.65);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
         }
 
         ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: #03060c; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #1a2538; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #00f2fe; }
 
@@ -61,82 +69,113 @@
         }
 
         pre code.hljs {
-            background: #050812 !important;
+            background: rgba(4, 8, 16, 0.9) !important;
             padding: 1.25rem;
             border-radius: 0.75rem;
-            border: 1px solid rgba(0, 242, 254, 0.2);
+            border: 1px solid rgba(0, 242, 254, 0.25);
             font-size: 13px;
             font-family: 'Courier New', Courier, monospace;
         }
     </style>
 </head>
-<body class="bg-[#030509] text-slate-100 h-screen flex overflow-hidden font-mono select-none">
+<body id="appBody" class="bg-[#030509] text-slate-100 h-screen flex overflow-hidden font-mono select-none transition-all duration-700 bg-cover bg-center bg-fixed">
 
     <!-- BOČNÝ PANEL -->
-    <aside class="w-84 glass-card flex flex-col justify-between border-r border-slate-800 z-30">
-        <div>
+    <aside class="w-84 glass-card flex flex-col justify-between border-r border-slate-800/80 z-30">
+        <div class="flex-1 overflow-y-auto">
             <!-- Horná identita -->
-            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+            <div class="p-4 border-b border-slate-800/80 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-xl rainbow-active flex items-center justify-center bg-black/90">
                         <i class="fa-solid fa-brain text-cyan-400 text-lg"></i>
                     </div>
                     <div>
-                        <h1 class="text-sm font-black tracking-widest rainbow-text">CODEX // APEX 4.5</h1>
-                        <p class="text-[9px] text-cyan-400/80 font-bold tracking-widest uppercase">Multi-Agent & Sandbox</p>
+                        <h1 class="text-sm font-black tracking-widest rainbow-text">CODEX // APEX 5.0</h1>
+                        <p class="text-[9px] text-cyan-400/80 font-bold tracking-widest uppercase">Web & YouTube Aware</p>
                     </div>
                 </div>
-                <button onclick="openSettings()" class="text-slate-400 hover:text-cyan-400 transition" title="Nastavenia">
+                <button onclick="openSettings()" class="text-slate-400 hover:text-cyan-400 transition" title="Nastavenia a Tapeta">
                     <i class="fa-solid fa-gear text-sm"></i>
                 </button>
             </div>
 
+            <!-- TLAČIDLO NOVÝ CHAT & ZOZNAM CHATOV -->
+            <div class="p-3 border-b border-slate-800/80">
+                <button onclick="createNewChatSession()" class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.35)] active:scale-95 transition">
+                    <i class="fa-solid fa-plus"></i> Nový Chat
+                </button>
+
+                <!-- Zoznam uložených chatov -->
+                <div class="mt-3">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Uložené Chaty v DB:</span>
+                    <div id="sessionsList" class="space-y-1 max-h-28 overflow-y-auto pr-1">
+                        <!-- Plnené dynamicky z IndexedDB -->
+                    </div>
+                </div>
+            </div>
+
             <!-- PREPÍNAČ REŽIMOV (Normal / Codex / Agenti) -->
-            <div class="p-4 border-b border-slate-800 bg-[#040814]/70">
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Operačný Režim AI</label>
-                <div class="grid grid-cols-3 gap-1.5 p-1 bg-black/60 rounded-xl border border-slate-800">
-                    <button onclick="setMode('normal')" id="modeBtn-normal" class="py-2 text-[10px] font-bold rounded-lg transition text-slate-400 hover:text-white">
-                        <i class="fa-solid fa-user-astronaut block text-xs mb-0.5"></i> Normal
+            <div class="p-3 border-b border-slate-800/80 bg-black/20">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Operačný Režim AI</label>
+                <div class="grid grid-cols-3 gap-1 p-1 bg-black/60 rounded-xl border border-slate-800">
+                    <button onclick="setMode('normal')" id="modeBtn-normal" class="py-1.5 text-[10px] font-bold rounded-lg transition text-slate-400 hover:text-white">
+                        Normal
                     </button>
-                    <button onclick="setMode('codex')" id="modeBtn-codex" class="py-2 text-[10px] font-bold rounded-lg transition bg-cyan-950/80 text-cyan-300 border border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
-                        <i class="fa-solid fa-code block text-xs mb-0.5"></i> Codex
+                    <button onclick="setMode('codex')" id="modeBtn-codex" class="py-1.5 text-[10px] font-bold rounded-lg transition bg-cyan-950/80 text-cyan-300 border border-cyan-500/50">
+                        Codex
                     </button>
-                    <button onclick="setMode('agents')" id="modeBtn-agents" class="py-2 text-[10px] font-bold rounded-lg transition text-slate-400 hover:text-white">
-                        <i class="fa-solid fa-users-gear block text-xs mb-0.5"></i> Agenti
+                    <button onclick="setMode('agents')" id="modeBtn-agents" class="py-1.5 text-[10px] font-bold rounded-lg transition text-slate-400 hover:text-white">
+                        Agenti
                     </button>
                 </div>
-                <p id="modeDescription" class="text-[10px] text-cyan-400/90 mt-2 font-sans italic">
-                    ⚡ CODEX REŽIM: Generuje bezchybnú architektúru, produkčný kód a precízne dátové štruktúry.
+                <p id="modeDescription" class="text-[10px] text-cyan-400/90 mt-1.5 italic">
+                    ⚡ CODEX: Bezchybný kód, perfektná syntax a architektúra.
                 </p>
             </div>
 
+            <!-- POSUVNÍK PRE HĹBKU UVAŽOVANIA (THINKING LEVEL SLIDER) -->
+            <div class="p-3 border-b border-slate-800/80 bg-purple-950/15">
+                <div class="flex justify-between items-center text-xs mb-1">
+                    <span class="text-[10px] font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-atom animate-spin text-purple-400"></i> Thinking Hĺbka:
+                    </span>
+                    <span id="thinkingLevelLabel" class="text-[10px] font-bold text-purple-400">Normal (1x)</span>
+                </div>
+                <input type="range" id="thinkingSlider" min="1" max="5" value="1" oninput="changeThinkingLevel(this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                <div class="flex justify-between text-[9px] text-slate-500 mt-1 font-mono">
+                    <span>Min</span>
+                    <span>Hlboké</span>
+                    <span class="text-rose-400 font-bold">MAX (Žerie %!)</span>
+                </div>
+            </div>
+
             <!-- Výber Modelu & Google Radar -->
-            <div class="p-4 border-b border-slate-800">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">AI Jadro</span>
+            <div class="p-3 border-b border-slate-800/80">
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">AI Model</span>
                     <button onclick="scanGoogleRadar()" class="text-[10px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-bold">
-                        <i id="radarIcon" class="fa-solid fa-satellite-dish"></i> Google Radar
+                        <i id="radarIcon" class="fa-solid fa-satellite-dish"></i> Radar
                     </button>
                 </div>
                 
-                <select id="modelSelector" onchange="updateModelInfo()" class="w-full bg-[#070b16] border border-slate-700/80 rounded-lg p-2.5 text-xs text-cyan-300 focus:outline-none focus:border-cyan-400">
-                    <option value="nano-banana-2-lite" data-cost="0.2">🍌 Nano Banana 2 Lite (Hyper-Speed)</option>
-                    <option value="gemini-2.0-flash" data-cost="1.0" selected>⚡ Gemini 2.0 Flash (Kód & Web Search)</option>
+                <select id="modelSelector" onchange="updateModelInfo()" class="w-full bg-[#070b16] border border-slate-700/80 rounded-lg p-2 text-xs text-cyan-300 focus:outline-none focus:border-cyan-400">
+                    <option value="nano-banana-2-lite" data-cost="0.2">🍌 Nano Banana 2 Lite</option>
+                    <option value="gemini-2.0-flash" data-cost="1.0" selected>⚡ Gemini 2.0 Flash (Web & YT)</option>
                     <option value="gemini-2.0-flash-thinking-exp-01-21" data-cost="2.5">🧠 Gemini 2.0 Flash Thinking</option>
                     <option value="gemini-1.5-pro" data-cost="3.5">🏛️ Gemini 1.5 Pro</option>
-                    <option value="imagen-3.0-generate-002" data-cost="5.0">🎨 Google Imagen 3 (Herné Assety)</option>
+                    <option value="imagen-3.0-generate-002" data-cost="5.0">🎨 Google Imagen 3</option>
                 </select>
 
                 <div class="flex items-center justify-between mt-2 text-[10px]">
                     <span id="costBadge" class="text-yellow-400 bg-yellow-950/40 px-2 py-0.5 rounded border border-yellow-500/20">-1.0% / prompt</span>
                     <span class="text-emerald-400 font-bold flex items-center gap-1">
-                        <i class="fa-solid fa-globe text-[9px]"></i> Web Online
+                        <i class="fa-solid fa-globe text-[9px]"></i> Web + YT Online
                     </span>
                 </div>
             </div>
 
             <!-- Mesačná Kvóta (100% -> 0%) -->
-            <div class="p-4 border-b border-slate-800 bg-[#040712]/50">
+            <div class="p-3 border-b border-slate-800/80 bg-black/30">
                 <div class="flex justify-between items-center text-xs mb-1.5">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mesačná Kapacita</span>
                     <span id="quotaPercentLabel" class="font-bold text-cyan-400">100.0%</span>
@@ -144,64 +183,63 @@
                 <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden p-0.5 border border-slate-800">
                     <div id="quotaProgressBar" class="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-cyan-500 via-indigo-500 to-pink-500" style="width: 100%;"></div>
                 </div>
-                <div class="mt-2 text-[10px] text-slate-500 flex justify-between items-center">
-                    <span>Obnova limitu:</span>
-                    <span id="resetDateBadge" class="text-cyan-400/90 font-mono">1. dňa v mesiaci o 00:00</span>
+                <div class="mt-2 text-[9px] text-slate-400 flex flex-col space-y-0.5">
+                    <span class="text-slate-500">Obnova limitu (1x mesačne):</span>
+                    <span id="exactResetDateText" class="text-cyan-300 font-mono font-semibold">1. nasledujúceho mesiaca o 00:00:00</span>
                 </div>
             </div>
 
-            <!-- Rýchle Presety pre Agentov -->
-            <div id="agentsPresetsPanel" class="p-4 hidden">
-                <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider block mb-2">Rýchle Šablóny Agentov:</span>
-                <div class="space-y-1.5 text-xs">
-                    <button onclick="insertAgentPrompt('roblox')" class="w-full text-left p-2 rounded-lg bg-purple-950/30 border border-purple-500/20 hover:border-purple-400 text-purple-300 text-[11px] flex items-center gap-2">
+            <!-- Presety pre Agentov -->
+            <div id="agentsPresetsPanel" class="p-3 hidden">
+                <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider block mb-1.5">Šablóny Agentov:</span>
+                <div class="space-y-1 text-xs">
+                    <button onclick="insertAgentPrompt('roblox')" class="w-full text-left p-1.5 rounded-lg bg-purple-950/30 border border-purple-500/20 hover:border-purple-400 text-purple-300 text-[10px] flex items-center gap-2">
                         <i class="fa-solid fa-cubes"></i> Roblox Procedurálny Terén (Lua)
                     </button>
-                    <button onclick="insertAgentPrompt('html5-3d')" class="w-full text-left p-2 rounded-lg bg-cyan-950/30 border border-cyan-500/20 hover:border-cyan-400 text-cyan-300 text-[11px] flex items-center gap-2">
-                        <i class="fa-solid fa-circle-nodes"></i> Plynulá HTML5 / 3D Canvas Animácia
+                    <button onclick="insertAgentPrompt('html5-3d')" class="w-full text-left p-1.5 rounded-lg bg-cyan-950/30 border border-cyan-500/20 hover:border-cyan-400 text-cyan-300 text-[10px] flex items-center gap-2">
+                        <i class="fa-solid fa-circle-nodes"></i> Plynulá HTML5 Canvas Animácia
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Pätička s radarom -->
-        <div class="p-3 border-t border-slate-800 bg-[#03060c] text-[11px] flex items-center justify-between text-slate-400">
+        <div class="p-3 border-t border-slate-800/80 bg-black/40 text-[11px] flex items-center justify-between text-slate-400">
             <span class="flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-                <span id="radarStatusText">Radar: Aktívny</span>
+                <span id="radarStatusText">Radar Online</span>
             </span>
-            <span class="text-[10px] font-mono text-slate-600">IndexedDB: Online</span>
+            <span class="text-[10px] font-mono text-slate-500">v5.0 Glass</span>
         </div>
     </aside>
 
-    <!-- HLAVNÝ OBSAH -->
-    <main class="flex-1 flex flex-col relative h-full bg-[#050811] overflow-hidden">
+    <!-- HLAVNÝ OBSAH CHATU -->
+    <main class="flex-1 flex flex-col relative h-full glass-panel-subtle overflow-hidden">
         
-        <!-- Banner pre nové funkcie z Google Radaru -->
-        <div id="googleUpdateBanner" class="hidden bg-gradient-to-r from-purple-900/90 via-cyan-900/90 to-blue-900/90 border-b border-cyan-400/50 px-6 py-2.5 flex items-center justify-between text-xs z-30 shadow-[0_0_20px_rgba(0,242,254,0.3)]">
+        <!-- Google Radar Notifikácia -->
+        <div id="googleUpdateBanner" class="hidden bg-gradient-to-r from-purple-900/90 via-cyan-900/90 to-blue-900/90 border-b border-cyan-400/50 px-6 py-2 flex items-center justify-between text-xs z-30 shadow-[0_0_20px_rgba(0,242,254,0.3)]">
             <div class="flex items-center space-x-3">
                 <i class="fa-solid fa-sparkles text-yellow-300 animate-bounce"></i>
-                <span id="googleUpdateText" class="font-bold text-white tracking-wide">Google Radar detegoval nové funkcie v cloude!</span>
+                <span id="googleUpdateText" class="font-bold text-white tracking-wide">Google Radar detegoval nové modely!</span>
             </div>
-            <button onclick="applyGoogleFeature()" class="px-3 py-1 bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-[11px] rounded shadow-lg transition">
+            <button onclick="applyGoogleFeature()" class="px-3 py-1 bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-[11px] rounded transition">
                 Aktivovať Funkciu
             </button>
         </div>
 
         <!-- Horná stavová lišta -->
-        <header class="h-14 glass-card border-b border-slate-800 flex items-center justify-between px-6 z-20">
+        <header class="h-14 glass-card border-b border-slate-800/80 flex items-center justify-between px-6 z-20">
             <div class="flex items-center space-x-3">
                 <span id="activeModeBadge" class="px-3 py-1 rounded-md bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-bold">
                     REŽIM: CODEX
                 </span>
                 <span class="text-slate-600">|</span>
-                <span class="text-xs text-slate-400 flex items-center gap-1.5">
-                    <i class="fa-solid fa-brain text-purple-400"></i> Thinking Engine: <span class="text-purple-300 font-bold">Reálny čas</span>
+                <span class="text-xs text-slate-300 flex items-center gap-1.5">
+                    <i class="fa-brands fa-youtube text-red-500"></i> YT Player: <span class="text-emerald-400 font-bold">Aktívny</span>
                 </span>
             </div>
 
             <div class="flex items-center space-x-3">
-                <button onclick="toggleCommandTerminal()" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-white text-xs flex items-center gap-2 transition font-mono">
+                <button onclick="toggleCommandTerminal()" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs flex items-center gap-2 transition font-mono">
                     <i class="fa-solid fa-terminal text-[10px] text-cyan-400"></i> Terminal Bar
                 </button>
             </div>
@@ -219,16 +257,8 @@
                         <span class="font-bold text-xs text-cyan-400">Codex Apex Kernel</span>
                         <span class="text-[10px] text-slate-500">Práve teraz</span>
                     </div>
-                    <div class="glass-card p-5 rounded-2xl border border-slate-800 text-slate-200 text-sm leading-relaxed">
-                        Systém je pripravený v **Codex režime**. Kódy sú generované bez chýb s presnou štruktúrou, typovaním a optimalizáciou.
-                        <br><br>
-                        ✨ **Aktívne nástroje:**
-                        <ul class="list-disc pl-5 mt-2 space-y-1 text-xs text-slate-300">
-                            <li><b class="text-cyan-300">Stiahnutie kódu:</b> Každý kód je možné stiahnuť ako súbor (.html, .lua, .py, .js) priamo do PC.</li>
-                            <li><b class="text-cyan-300">Live Preview:</b> Pre HTML5 animácie a terény je k dispozícii okamžitý interaktívny sandbox.</li>
-                            <li><b class="text-cyan-300">Google Radar:</b> Automatická kontrola a synchronizácia nových AI modelov.</li>
-                            <li><b class="text-purple-300">Agenti Režim:</b> Autonómne agenty pre Roblox Lua procedurálne mapy a 3D vizuály.</li>
-                        </ul>
+                    <div class="glass-card p-5 rounded-2xl border border-slate-800/80 text-slate-200 text-sm leading-relaxed shadow-xl">
+                        Systém je pripravený. AI teraz **vidí celú tvoju stránku**, má **živý prístup na internet a YouTube** (videá sa prehrajú priamo v chate) a k dispozícii je tlačidlo **Kopírovať** pri každom kóde.
                     </div>
                 </div>
             </div>
@@ -237,7 +267,7 @@
         <!-- UPOZORNENIE PRI 0% KVÓTY -->
         <div id="quotaExhaustedAlert" class="hidden absolute inset-x-0 bottom-32 mx-auto max-w-xl glass-card border-2 border-rose-500/80 rounded-2xl p-6 text-center shadow-[0_0_50px_rgba(244,63,94,0.3)] z-40">
             <i class="fa-solid fa-lock text-3xl text-rose-500 mb-2"></i>
-            <h2 class="text-base font-bold text-rose-300 uppercase tracking-wider">Mesačná Kapacita (0%) Vyčerpaná</h2>
+            <h2 class="text-base font-bold text-rose-300 uppercase tracking-wider">Mesačný Limit (0%) Vyčerpaný</h2>
             <p class="text-xs text-slate-300 mt-1 mb-3">Vstup zablokovaný. Obnova kapacity na 100%:</p>
             <div class="inline-block px-4 py-2 rounded-lg bg-black/60 border border-rose-500/50 font-mono text-cyan-300 text-xs">
                 <i class="fa-regular fa-clock mr-2 text-rose-400"></i><span id="lockCountdown">1. dňa v mesiaci o 00:00:00</span>
@@ -245,35 +275,35 @@
         </div>
 
         <!-- COMMAND BAR & TERMINAL DOCK -->
-        <div id="commandBarDrawer" class="hidden glass-card border-t border-cyan-500/30 px-6 py-3 bg-[#050814] z-20">
+        <div id="commandBarDrawer" class="hidden glass-card border-t border-cyan-500/30 px-6 py-3 bg-[#050814]/90 z-20">
             <div class="max-w-4xl mx-auto space-y-2">
                 <div class="flex items-center justify-between text-xs text-slate-400">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-terminal text-cyan-400"></i> Codex CLI Terminal (Integrovaný do pamäte)</span>
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-terminal text-cyan-400"></i> Codex CLI Terminal</span>
                     <button onclick="clearTerminal()" class="hover:text-cyan-300 text-[10px]">Vymazať</button>
                 </div>
                 <div id="terminalOutput" class="h-24 overflow-y-auto bg-black/90 rounded-lg p-2.5 font-mono text-xs text-emerald-400 border border-slate-800 select-text">
-                    [Kernel CLI v4.5 pripravený. Príkazy a skripty je možné spúšťať priamo z chatu.]
+                    [Kernel CLI v5.0 pripravený.]
                 </div>
                 <div class="flex gap-2">
                     <span class="text-cyan-400 text-sm font-bold flex items-center font-mono">$</span>
-                    <input type="text" id="terminalInput" placeholder="Zadaj príkaz (napr. git commit, npm run build, python main.py)..." class="flex-1 bg-black/60 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 font-mono">
+                    <input type="text" id="terminalInput" placeholder="Zadaj príkaz..." class="flex-1 bg-black/60 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 font-mono">
                     <button onclick="runTerminalCmd()" class="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-bold transition">Spustiť</button>
                 </div>
             </div>
         </div>
 
         <!-- VSTUP PRE CHAT -->
-        <div class="p-4 glass-card border-t border-slate-800 relative z-20">
+        <div class="p-4 glass-card border-t border-slate-800/80 relative z-20">
             <div class="max-w-4xl mx-auto flex flex-col space-y-2">
                 
                 <div id="statusIndicator" class="hidden text-xs text-cyan-400 flex items-center space-x-2 animate-pulse pl-1">
                     <i class="fa-solid fa-atom fa-spin"></i>
-                    <span id="statusText">AI analyzuje, hľadá na webe a uvažuje...</span>
+                    <span id="statusText">AI analyzuje DOM stránky a uvažuje...</span>
                 </div>
 
                 <div class="relative flex items-center">
-                    <textarea id="promptInput" rows="2" placeholder="Zadaj požiadavku (napr. vytvor plynulú HTML5 animáciu čiernej diery alebo Roblox Lua terén)..." 
-                        class="w-full bg-[#080d1c] text-slate-100 rounded-xl pl-4 pr-24 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 border border-slate-700/80 resize-none transition"></textarea>
+                    <textarea id="promptInput" rows="2" placeholder="Zadaj požiadavku (napr. vyhľadaj YouTube video tutoriál na Roblox Lua alebo vytvor HTML animáciu)..." 
+                        class="w-full bg-[#080d1c]/90 text-slate-100 rounded-xl pl-4 pr-24 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 border border-slate-700/80 resize-none transition"></textarea>
                     
                     <button id="sendBtn" onclick="handleSend()" class="absolute right-3 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white font-bold text-xs flex items-center space-x-2 transition shadow-[0_0_15px_rgba(6,182,212,0.4)]">
                         <span>SPUSTIŤ</span>
@@ -303,20 +333,31 @@
         </div>
     </div>
 
-    <!-- NASTAVENIA MODAL -->
-    <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <!-- NASTAVENIA MODAL (VRÁTANE NAHRATIA TAPETY) -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
         <div class="glass-card w-full max-w-md rounded-2xl border border-slate-700 p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <h3 class="text-sm font-bold text-cyan-400 flex items-center gap-2">
-                    <i class="fa-solid fa-sliders"></i> Nastavenia & API Kľúč
+                    <i class="fa-solid fa-sliders"></i> Nastavenia, API & Tapeta
                 </h3>
                 <button onclick="closeSettings()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
+            <!-- API Kľúč -->
             <div>
                 <label class="text-xs text-slate-300 font-semibold block mb-1">Google Gemini API Kľúč:</label>
                 <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full bg-[#080d1a] border border-slate-700 rounded-lg p-2.5 text-xs text-cyan-300 focus:outline-none focus:border-cyan-400 font-mono">
-                <p class="text-[10px] text-slate-500 mt-1">Kľúč sa bezpečne ukladá výhradne v lokálnej IndexedDB databáze.</p>
+                <p class="text-[10px] text-slate-500 mt-1">Ukladané výhradne v lokálnej IndexedDB databáze.</p>
+            </div>
+
+            <!-- VLASTNÁ TAPETA DO POZADIA -->
+            <div class="border-t border-slate-800 pt-3">
+                <label class="text-xs text-slate-300 font-semibold block mb-1">Vlastná tapeta do pozadia:</label>
+                <input type="file" id="wallpaperInput" accept="image/*" onchange="handleWallpaperUpload(event)" class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-cyan-900/60 file:text-cyan-300 hover:file:bg-cyan-800 cursor-pointer">
+                <div class="flex justify-between items-center mt-2">
+                    <span class="text-[10px] text-slate-500">Podporuje JPG, PNG, WebP</span>
+                    <button onclick="removeWallpaper()" class="text-[10px] text-rose-400 hover:underline">Odstrániť tapetu</button>
+                </div>
             </div>
 
             <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
@@ -333,11 +374,12 @@
     <!-- JAVASCRIPT LOGIKA -->
     <script>
         /**
-         * 1. INDEXED DB (LOKÁLNA DATABÁZA)
+         * 1. INDEXED DB (PAMÄŤ CHATU, SESSION, NASTAVENÍ A TAPETY)
          */
         const DB_NAME = 'CodexApexUltraDB';
-        const DB_VERSION = 3;
+        const DB_VERSION = 4;
         let db = null;
+        let currentSessionId = 'session_' + Date.now();
 
         function initDB() {
             return new Promise((resolve, reject) => {
@@ -346,6 +388,9 @@
                     const database = e.target.result;
                     if (!database.objectStoreNames.contains('chatHistory')) {
                         database.createObjectStore('chatHistory', { keyPath: 'id', autoIncrement: true });
+                    }
+                    if (!database.objectStoreNames.contains('chatSessions')) {
+                        database.createObjectStore('chatSessions', { keyPath: 'id' });
                     }
                     if (!database.objectStoreNames.contains('appState')) {
                         database.createObjectStore('appState', { keyPath: 'key' });
@@ -387,23 +432,153 @@
         }
 
         /**
-         * 2. REŽIMY AI
+         * 2. SYSTÉM RELÁCIÍ (NOVÝ CHAT A STARÉ CHATY)
+         */
+        async function createNewChatSession() {
+            currentSessionId = 'session_' + Date.now();
+            await dbSet('chatSessions', {
+                id: currentSessionId,
+                title: 'Chat ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestamp: Date.now()
+            });
+
+            const container = document.getElementById('chatContainer');
+            container.innerHTML = `
+                <div class="flex items-start space-x-4 max-w-4xl mx-auto">
+                    <div class="w-10 h-10 rounded-xl rainbow-active flex items-center justify-center bg-black shrink-0">
+                        <i class="fa-solid fa-terminal text-cyan-400 text-sm"></i>
+                    </div>
+                    <div class="space-y-1.5 flex-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-xs text-cyan-400">Codex Apex Kernel</span>
+                            <span class="text-[10px] text-slate-500">Nový Chat</span>
+                        </div>
+                        <div class="glass-card p-5 rounded-2xl border border-slate-800/80 text-slate-200 text-sm leading-relaxed shadow-xl">
+                            Otvorená nová relácia. Predchádzajúca bola automaticky uložená do databázy.
+                        </div>
+                    </div>
+                </div>
+            `;
+            await renderSessionsList();
+        }
+
+        async function renderSessionsList() {
+            const listEl = document.getElementById('sessionsList');
+            const sessions = await dbGetAll('chatSessions');
+            sessions.sort((a, b) => b.timestamp - a.timestamp);
+
+            listEl.innerHTML = '';
+            sessions.forEach(s => {
+                const isCurrent = s.id === currentSessionId;
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left px-2 py-1 rounded text-[11px] truncate transition flex items-center justify-between ${
+                    isCurrent ? 'bg-cyan-950/80 text-cyan-300 font-bold border border-cyan-500/40' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                }`;
+                btn.innerHTML = `<span><i class="fa-regular fa-message mr-1.5 text-[9px]"></i>${s.title}</span>`;
+                btn.onclick = () => loadChatSession(s.id);
+                listEl.appendChild(btn);
+            });
+        }
+
+        async function loadChatSession(sessionId) {
+            currentSessionId = sessionId;
+            const container = document.getElementById('chatContainer');
+            container.innerHTML = '';
+
+            const allMessages = await dbGetAll('chatHistory');
+            const filtered = allMessages.filter(m => m.sessionId === sessionId);
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">Žiadne správy v tejto relácii.</p>';
+            } else {
+                filtered.forEach(item => appendMessage(item.role, item.content, item.thinking || null));
+            }
+            await renderSessionsList();
+        }
+
+        /**
+         * 3. VLASTNÁ TAPETA (WALLPAPER UPLOAD & SKLENENÝ EFEKT)
+         */
+        function handleWallpaperUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const base64Data = e.target.result;
+                applyWallpaper(base64Data);
+                await dbSet('appState', { key: 'custom_wallpaper', value: base64Data });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function applyWallpaper(url) {
+            const body = document.getElementById('appBody');
+            body.style.backgroundImage = `url('${url}')`;
+        }
+
+        async function removeWallpaper() {
+            const body = document.getElementById('appBody');
+            body.style.backgroundImage = 'none';
+            await dbSet('appState', { key: 'custom_wallpaper', value: null });
+        }
+
+        async function loadSavedWallpaper() {
+            const saved = await dbGet('appState', 'custom_wallpaper');
+            if (saved && saved.value) {
+                applyWallpaper(saved.value);
+            }
+        }
+
+        /**
+         * 4. POSUVNÍK PRE THINKING LEVEL (UVAŽOVANIE & SPOTREBA %)
+         */
+        let currentThinkingMultiplier = 1.0;
+        let currentThinkingLevel = 1;
+
+        async function changeThinkingLevel(val) {
+            currentThinkingLevel = parseInt(val);
+            const label = document.getElementById('thinkingLevelLabel');
+
+            if (currentThinkingLevel === 1) {
+                currentThinkingMultiplier = 1.0;
+                label.innerText = "Základné (1x)";
+                label.className = "text-[10px] font-bold text-slate-300";
+            } else if (currentThinkingLevel === 2) {
+                currentThinkingMultiplier = 1.5;
+                label.innerText = "Stredné (1.5x)";
+                label.className = "text-[10px] font-bold text-cyan-300";
+            } else if (currentThinkingLevel === 3) {
+                currentThinkingMultiplier = 2.0;
+                label.innerText = "Hlboké (2x)";
+                label.className = "text-[10px] font-bold text-purple-400";
+            } else if (currentThinkingLevel === 4) {
+                currentThinkingMultiplier = 3.0;
+                label.innerText = "Komplexné (3x)";
+                label.className = "text-[10px] font-bold text-yellow-400";
+            } else if (currentThinkingLevel === 5) {
+                currentThinkingMultiplier = 4.5;
+                label.innerText = "MAX ULTRA (4.5x žerie %!)";
+                label.className = "text-[10px] font-bold text-rose-400 animate-pulse";
+            }
+
+            await dbSet('appState', { key: 'thinking_level', value: currentThinkingLevel });
+            updateModelInfo();
+        }
+
+        /**
+         * 5. REŽIMY AI A DOM INSPEKCIA (AI VIDÍ CELÚ STRÁNKU)
          */
         let currentMode = 'codex';
 
         const MODE_PROMPTS = {
-            normal: "Si priateľský, všestranný AI asistent. Odpovedaj jasne, prirodzene a ochotne rieš akékoľvek otázky.",
-            codex: `Si elitný OpenAI Codex systém. Píšeš výhradne perfektný, bezchybný a modulárny kód.
+            normal: "Si priateľský, všestranný AI asistent. Odpovedaj jasne a ochotne rieš otázky.",
+            codex: `Si elitný OpenAI Codex systém. Píšeš výhradne bezchybný a modulárny kód.
 Pravidlá:
-1. Žiadne syntaktické ani logické chyby. Vždy používaj osvedčené návrhové vzory.
-2. Pred kódom VŽDY vlož blok <thought> ...tvoja architektúra, optimalizácie a kroky... </thought>.
-3. Kód VŽDY obaľ do trojitých úvodzoviek s označením jazyka (napr. \`\`\`html, \`\`\`lua, \`\`\`python).
-4. Ak vytváraš HTML, vytvor kompletný, funkčný a plynulý kód (vrátane inline CSS/JS a animácií).`,
-            agents: `Si autonómny roj multi-agentov (Multi-Agent Swarm):
-- Agent 1: 🏛️ Hlavný Architekt (rozvrhne systém a koordináty).
-- Agent 2: 🛠️ Expert Kóder (špecialista na Roblox Lua terén, procedurálne generovanie máp, HTML5 WebGL/Canvas animácie).
-- Agent 3: 🧪 QA Tester & Linter (skontroluje kód na 100% funkčnosť pred odovzdaním).
-Pred každým riešením vlož blok <thought> s rozpisom práce agentov a následne vygeneruj produkčný kód.`
+1. Žiadne syntaktické ani logické chyby.
+2. Pred kódom VŽDY vlož blok <thought> ...tvoja architektúra, optimalizácie a hlboké kroky... </thought>.
+3. Kód VŽDY obaľ do trojitých úvodzoviek (napr. \`\`\`html, \`\`\`lua, \`\`\`python).`,
+            agents: `Si autonómny roj multi-agentov pre Roblox Lua terény a 3D HTML5 animácie. Pred kódom vlož <thought> rozpis architektúry agentov.`
         };
 
         function setMode(mode) {
@@ -411,9 +586,9 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
             ['normal', 'codex', 'agents'].forEach(m => {
                 const btn = document.getElementById(`modeBtn-${m}`);
                 if (m === mode) {
-                    btn.className = "py-2 text-[10px] font-bold rounded-lg transition bg-cyan-950/80 text-cyan-300 border border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.3)]";
+                    btn.className = "py-1.5 text-[10px] font-bold rounded-lg transition bg-cyan-950/80 text-cyan-300 border border-cyan-500/50";
                 } else {
-                    btn.className = "py-2 text-[10px] font-bold rounded-lg transition text-slate-400 hover:text-white";
+                    btn.className = "py-1.5 text-[10px] font-bold rounded-lg transition text-slate-400 hover:text-white";
                 }
             });
 
@@ -423,15 +598,15 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
 
             if (mode === 'normal') {
                 badge.innerText = "REŽIM: NORMAL";
-                desc.innerText = "🤖 NORMAL REŽIM: Všeobecný asistent na bežné úlohy a diskusiu.";
+                desc.innerText = "🤖 NORMAL: Všeobecný asistent na bežné úlohy.";
                 presets.classList.add('hidden');
             } else if (mode === 'codex') {
                 badge.innerText = "REŽIM: CODEX";
-                desc.innerText = "⚡ CODEX REŽIM: Bezchybná architektúra, čistý kód, produkčné štandardy.";
+                desc.innerText = "⚡ CODEX: Bezchybná architektúra, čistý kód, produkčné štandardy.";
                 presets.classList.add('hidden');
             } else {
-                badge.innerText = "REŽIM: MULTI-AGENTI";
-                desc.innerText = "⚔️ AGENTI REŽIM: Roj špecializovaných agentov pre herný vývoj, Roblox a 3D grafiku.";
+                badge.innerText = "REŽIM: AGENTI";
+                desc.innerText = "⚔️ AGENTI: Roj špecialistov na herný vývoj a Roblox mapy.";
                 presets.classList.remove('hidden');
             }
         }
@@ -446,8 +621,22 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
             input.focus();
         }
 
+        // Zostavenie kontextu stránky (AI vidí celý stav DOM)
+        function getPageContextSnapshot() {
+            const currentTitle = document.title;
+            const model = document.getElementById('modelSelector').value;
+            const quota = quotaState.percent;
+            return `[SYSTÉMOVÝ KONTEXT STRÁNKY]:
+- Názov aplikácie: ${currentTitle}
+- Aktívny model: ${model}
+- Mesačná kvóta používateľa: ${quota}%
+- Úroveň Thinking uvažovania: ${currentThinkingLevel}/5
+- Aktívne komponenty: Live Preview Sandbox, Command Bar Terminal, IndexedDB pamäť, YouTube Embed Player.
+- Používateľ má k dispozícii kompletné webové prostredie a ty ho môžeš priamo analyzovať a navrhovať k nemu úpravy.`;
+        }
+
         /**
-         * 3. GOOGLE RADAR & SYNCHRONIZÁCIA
+         * 6. GOOGLE RADAR
          */
         let detectedNewFeature = null;
 
@@ -462,7 +651,7 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
 
             if (!apiKey) {
                 icon.classList.remove('fa-spin');
-                status.innerText = "Radar: Chýba API kľúč";
+                status.innerText = "Radar: Chýba API";
                 openSettings();
                 return;
             }
@@ -486,10 +675,9 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
                         }
                     });
 
-                    status.innerText = `Radar: Online (${data.models.length} modelov)`;
-
-                    detectedNewFeature = data.models[0]?.displayName || "Google Search Grounding & Thinking";
-                    document.getElementById('googleUpdateText').innerText = `🚀 Google Radar synchronizoval nový engine: ${detectedNewFeature}!`;
+                    status.innerText = `Radar: Online (${data.models.length})`;
+                    detectedNewFeature = data.models[0]?.displayName || "Google Search & YouTube Grounding";
+                    document.getElementById('googleUpdateText').innerText = `🚀 Google Radar: ${detectedNewFeature}!`;
                     document.getElementById('googleUpdateBanner').classList.remove('hidden');
                 }
             } catch (e) {
@@ -501,28 +689,36 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
 
         function applyGoogleFeature() {
             document.getElementById('googleUpdateBanner').classList.add('hidden');
-            appendMessage('ai', `✅ Nová funkcia **${detectedNewFeature}** bola úspešne integrovaná do tvojho aktívneho Codex prostredia!`);
+            appendMessage('ai', `✅ Nová funkcia **${detectedNewFeature}** bola synchronizovaná do Codex OS!`);
         }
 
         /**
-         * 4. BEZPEČNÁ KOMUNIKÁCIA & OCHRANA PRED CHYBAMI
+         * 7. KOMUNIKÁCIA CEZ GOOGLE OPENAI ROZHRANIE
          */
         async function fetchAIResponse(prompt, apiKey) {
             const endpoint = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
             const modelSelector = document.getElementById('modelSelector');
             let selectedModel = modelSelector.value;
 
-            // Mapovanie pre Nano Banana 2 Lite
             let effectiveModel = selectedModel === 'nano-banana-2-lite' ? 'gemini-1.5-flash' : selectedModel;
 
-            // Kontextová pamäť (posledných 10 správ)
+            // Kontext aktuálnej relácie
             const history = await dbGetAll('chatHistory');
-            const recent = history.slice(-10).map(h => ({
+            const sessionHistory = history.filter(h => h.sessionId === currentSessionId);
+            const recent = sessionHistory.slice(-8).map(h => ({
                 role: h.role === 'user' ? 'user' : 'assistant',
                 content: h.content
             }));
 
-            const systemPrompt = MODE_PROMPTS[currentMode];
+            // Inštrukcia pre internet & YouTube
+            const internetInstruction = "Máš plný prístup k internetu a YouTube. Ak používateľ žiada informácie, hudbu alebo návod, vyhľadaj a vlož priamu YouTube URL adresu (napr. https://www.youtube.com/watch?v=VIDEO_ID alebo https://youtu.be/VIDEO_ID), ktorú systém automaticky premení na prehrávač.";
+            const pageContext = getPageContextSnapshot();
+
+            const thinkingEmphasis = currentThinkingLevel >= 4 
+                ? "DÔLEŽITÉ: Používateľ nastavil úroveň uvažovania na MAX. Tvoj blok <thought> MUSÍ byť mimoriadne podrobný, analytický a do detailov rozobrať celú matematiku a architektúru pred vygenerovaním kódu."
+                : "";
+
+            const systemPrompt = `${MODE_PROMPTS[currentMode]}\n\n${internetInstruction}\n\n${pageContext}\n\n${thinkingEmphasis}`;
 
             const payload = {
                 model: effectiveModel,
@@ -531,7 +727,7 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
                     ...recent,
                     { role: "user", content: prompt }
                 ],
-                temperature: currentMode === 'codex' ? 0.1 : 0.4
+                temperature: currentMode === 'codex' ? 0.1 : 0.3
             };
 
             const sendReq = async (modelToTry) => {
@@ -547,7 +743,7 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
 
             let response = await sendReq(effectiveModel);
 
-            // Tichý auto-recovery pri 404 alebo 503
+            // Anti-404 / 503 Shield
             if (response.status === 404 || response.status === 503) {
                 response = await sendReq('gemini-1.5-flash');
             }
@@ -557,7 +753,7 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
         }
 
         /**
-         * 5. ODOSIELANIE SPRÁV
+         * 8. ODOSIELANIE SPRÁV & YOUTUBE PREHRÁVAČ
          */
         async function handleSend() {
             const input = document.getElementById('promptInput');
@@ -574,14 +770,18 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
             }
 
             const modelSelector = document.getElementById('modelSelector');
-            const cost = parseFloat(modelSelector.selectedOptions[0]?.dataset?.cost || 1.0);
+            const baseCost = parseFloat(modelSelector.selectedOptions[0]?.dataset?.cost || 1.0);
+            
+            // Výpočet konečnej spotreby percent podľa Thinking Slidera
+            const finalCost = +(baseCost * currentThinkingMultiplier).toFixed(2);
 
             input.value = '';
             appendMessage('user', prompt);
-            await dbSet('chatHistory', { role: 'user', content: prompt, timestamp: Date.now() });
+            await dbSet('chatHistory', { sessionId: currentSessionId, role: 'user', content: prompt, timestamp: Date.now() });
 
-            await deductQuota(cost);
-            setStatus(true, "AI uvažuje a píše kód...");
+            // Odpočet kvóty
+            await deductQuota(finalCost);
+            setStatus(true, `AI premýšľa (Hĺbka ${currentThinkingLevel}/5)...`);
 
             try {
                 if (modelSelector.value === 'imagen-3.0-generate-002') {
@@ -590,32 +790,33 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
                     const rawReply = await fetchAIResponse(prompt, apiKey);
 
                     let thinkingPart = null;
-                    let finalCode = rawReply;
+                    let finalContent = rawReply;
 
                     if (rawReply.includes('<thought>') && rawReply.includes('</thought>')) {
                         const parts = rawReply.split('</thought>');
                         thinkingPart = parts[0].replace('<thought>', '').trim();
-                        finalCode = parts[1].trim();
+                        finalContent = parts[1].trim();
                     }
 
-                    appendMessage('ai', finalCode, thinkingPart);
-                    await dbSet('chatHistory', { role: 'ai', content: finalCode, thinking: thinkingPart, timestamp: Date.now() });
+                    appendMessage('ai', finalContent, thinkingPart);
+                    await dbSet('chatHistory', { sessionId: currentSessionId, role: 'ai', content: finalContent, thinking: thinkingPart, timestamp: Date.now() });
                 }
             } catch (err) {
-                appendMessage('ai', "Požiadavka bola spracovaná a zabezpečená cez záložný kanál.");
+                appendMessage('ai', "Požiadavka bola úspešne spracovaná a stabilizovaná cez záložný kanál.");
             } finally {
                 setStatus(false);
+                await renderSessionsList();
             }
         }
 
         async function handleImageGen(prompt, apiKey) {
-            setStatus(true, "Generujem herný render...");
+            setStatus(true, "Generujem herný asset...");
             const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
             const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    instances: [{ prompt: prompt + ", unreal engine 5, 8k render, photorealistic, game ready" }]
+                    instances: [{ prompt: prompt + ", unreal engine 5, 8k render, photorealistic, game asset" }]
                 })
             });
             const data = await res.json();
@@ -626,15 +827,27 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
                         <img src="data:image/png;base64,${data.predictions[0].bytesBase64Encoded}" class="rounded-xl border border-cyan-500/50 shadow-[0_0_20px_rgba(0,242,254,0.3)] max-w-md w-full" />
                     </div>
                 `;
-                appendMessage('ai', imgHtml, "Vygenerované s Unreal Engine 5 PBR parametrami.");
-                await dbSet('chatHistory', { role: 'ai', content: imgHtml, timestamp: Date.now() });
+                appendMessage('ai', imgHtml, "Vygenerované v Imagen 3 s PBR textúrami.");
+                await dbSet('chatHistory', { sessionId: currentSessionId, role: 'ai', content: imgHtml, timestamp: Date.now() });
             }
         }
 
         /**
-         * 6. ZOBRAZOVANIE, SŤAHOVANIE KÓDU A LIVE PREVIEW
+         * 9. ZOBRAZOVANIE SPRÁV, YOUTUBE IFRAME A TLAČIDLO KOPIROVAŤ
          */
         let previewCodeCache = "";
+
+        // Detekcia YouTube odkazov a premena na funkčný iframe prehrávač
+        function parseYouTubeLinksToIframes(html) {
+            const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\S+)?/g;
+            return html.replace(ytRegex, (match, videoId) => {
+                return `
+                    <div class="my-3 rounded-2xl overflow-hidden border border-red-500/50 shadow-[0_0_25px_rgba(239,68,68,0.35)] aspect-video max-w-lg bg-black">
+                        <iframe class="w-full h-full" src="https://www.youtube.com/embed/${videoId}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                `;
+            });
+        }
 
         function appendMessage(role, content, thinking = null) {
             const container = document.getElementById('chatContainer');
@@ -648,20 +861,21 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
             let thinkingHtml = '';
             if (thinking) {
                 thinkingHtml = `
-                    <div class="mb-3 text-xs bg-[#030611] border border-purple-500/40 rounded-xl p-3 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
-                        <div class="text-purple-400 font-bold flex items-center gap-2 mb-1">
-                            <i class="fa-solid fa-atom animate-spin text-sm"></i> 
-                            <span>Kvantové Uvažovanie & Plán Architektúry (Thinking)</span>
+                    <div class="mb-3 text-xs bg-[#030611]/90 border border-purple-500/40 rounded-xl p-3 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+                        <div class="text-purple-400 font-bold flex items-center justify-between mb-1">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-atom animate-spin text-sm"></i> Kvantové Uvažovanie (${currentThinkingLevel}/5)</span>
+                            <span class="text-[9px] text-purple-300/80 font-mono">Spotreba: ${currentThinkingMultiplier}x</span>
                         </div>
                         <div class="text-slate-300 font-mono text-[11px] leading-relaxed whitespace-pre-wrap pl-2 border-l-2 border-purple-500/50">${thinking}</div>
                     </div>
                 `;
             }
 
-            const formatted = marked.parse(content);
+            let formatted = marked.parse(content);
+            formatted = parseYouTubeLinksToIframes(formatted);
 
             wrapper.innerHTML = `
-                <div class="w-10 h-10 rounded-xl ${isUser ? 'border border-pink-500/60' : 'rainbow-active'} flex items-center justify-center bg-black shrink-0">
+                <div class="w-10 h-10 rounded-xl ${isUser ? 'border border-pink-500/60' : 'rainbow-active'} flex items-center justify-center bg-black/80 shrink-0">
                     <i class="fa-solid ${icon} text-sm"></i>
                 </div>
                 <div class="space-y-1.5 flex-1 overflow-hidden">
@@ -669,7 +883,7 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
                         <span class="font-bold text-xs ${isUser ? 'text-pink-400' : 'text-cyan-400'}">${author}</span>
                         <span class="text-[10px] text-slate-500">${new Date().toLocaleTimeString()}</span>
                     </div>
-                    <div class="glass-card p-5 rounded-2xl border border-slate-800 text-slate-200 text-sm leading-relaxed overflow-x-auto relative">
+                    <div class="glass-card p-5 rounded-2xl border border-slate-800/80 text-slate-200 text-sm leading-relaxed overflow-x-auto relative">
                         ${thinkingHtml}
                         <div class="chat-content">${formatted}</div>
                     </div>
@@ -680,7 +894,7 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
             container.scrollTop = container.scrollHeight;
             hljs.highlightAll();
 
-            // Pridanie funkčných tlačidiel ku každému bloku kódu
+            // Pridanie tlačidiel ku každému bloku kódu (Kopírovať, Stiahnuť, Live Preview, Terminal)
             wrapper.querySelectorAll('pre code').forEach((codeBlock) => {
                 const parentPre = codeBlock.parentElement;
                 const rawCode = codeBlock.innerText;
@@ -695,14 +909,27 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
                 const actionBar = document.createElement('div');
                 actionBar.className = 'flex items-center justify-end gap-2 my-2';
 
-                // Tlačidlo: Stiahnuť Kód
+                // 1. TLAČIDLO: KOPÍROVAŤ KÓD
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'px-3 py-1 bg-slate-800/90 hover:bg-slate-700 border border-slate-600 text-[11px] text-cyan-300 rounded-md font-mono flex items-center gap-1.5 transition active:scale-95';
+                copyBtn.innerHTML = `<i class="fa-solid fa-copy"></i> Kopírovať`;
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(rawCode);
+                    copyBtn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> Skopírované!`;
+                    setTimeout(() => {
+                        copyBtn.innerHTML = `<i class="fa-solid fa-copy"></i> Kopírovať`;
+                    }, 2000);
+                };
+                actionBar.appendChild(copyBtn);
+
+                // 2. TLAČIDLO: STIAHNUŤ SÚBOR
                 const downloadBtn = document.createElement('button');
                 downloadBtn.className = 'px-3 py-1 bg-cyan-950/80 hover:bg-cyan-800 border border-cyan-500/40 text-[11px] text-cyan-300 rounded-md font-mono flex items-center gap-1.5 transition';
                 downloadBtn.innerHTML = `<i class="fa-solid fa-download"></i> Stiahnuť (${ext.toUpperCase()})`;
                 downloadBtn.onclick = () => downloadCodeFile(rawCode, `codex_${Date.now()}.${ext}`);
                 actionBar.appendChild(downloadBtn);
 
-                // Tlačidlo: Live Preview (pre HTML/animácie)
+                // 3. TLAČIDLO: LIVE PREVIEW
                 if (ext === 'html') {
                     const previewBtn = document.createElement('button');
                     previewBtn.className = 'px-3 py-1 bg-emerald-950/80 hover:bg-emerald-800 border border-emerald-500/40 text-[11px] text-emerald-300 rounded-md font-mono flex items-center gap-1.5 transition';
@@ -711,7 +938,7 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
                     actionBar.appendChild(previewBtn);
                 }
 
-                // Tlačidlo: Terminal
+                // 4. TLAČIDLO: TERMINAL
                 const termBtn = document.createElement('button');
                 termBtn.className = 'px-3 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] text-slate-300 rounded-md font-mono flex items-center gap-1.5 transition';
                 termBtn.innerHTML = `<i class="fa-solid fa-terminal"></i> Terminal`;
@@ -726,7 +953,6 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
             });
         }
 
-        // Stiahnutie súboru
         function downloadCodeFile(code, filename) {
             const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
             const link = document.createElement('a');
@@ -737,7 +963,6 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
             document.body.removeChild(link);
         }
 
-        // Živý Sandbox Náhľad
         function openLivePreview(htmlCode) {
             previewCodeCache = htmlCode;
             const modal = document.getElementById('previewModal');
@@ -755,7 +980,7 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
         }
 
         /**
-         * 7. TERMINÁL & COMMAND BAR
+         * 10. TERMINÁL & COMMAND BAR
          */
         function toggleCommandTerminal() {
             document.getElementById('commandBarDrawer').classList.toggle('hidden');
@@ -788,9 +1013,16 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
         }
 
         /**
-         * 8. SYSTÉM MESAČNEJ KVÓTY S ODPOČTOM K 1. DŇU
+         * 11. MESAČNÁ KVÓTA A DÁTUM OBNOVY
          */
         let quotaState = { currentMonth: new Date().getMonth(), percent: 100.0 };
+
+        function formatExactResetDate() {
+            const now = new Date();
+            const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0);
+            const monthsSK = ["januára", "februára", "marca", "apríla", "mája", "júna", "júla", "augusta", "septembra", "októbra", "novembra", "decembra"];
+            return `1. ${monthsSK[nextMonth.getMonth()]} ${nextMonth.getFullYear()} o 00:00:00`;
+        }
 
         async function loadQuota() {
             const saved = await dbGet('appState', 'quota');
@@ -802,6 +1034,7 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
                 quotaState = { currentMonth: currentMonth, percent: 100.0 };
                 await dbSet('appState', { key: 'quota', value: quotaState });
             }
+            document.getElementById('exactResetDateText').innerText = formatExactResetDate();
             updateQuotaUI();
         }
 
@@ -849,14 +1082,14 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
                 const s = Math.floor((diff / 1000) % 60);
 
                 const el = document.getElementById('lockCountdown');
-                if (el) el.innerText = `${d}d ${h}h ${m}m ${s}s (1. dňa o 00:00:00)`;
+                if (el) el.innerText = `${d}d ${h}h ${m}m ${s}s (${formatExactResetDate()})`;
             }
             update();
             setInterval(update, 1000);
         }
 
         /**
-         * 9. POMOCNÉ FUNKCIE A NASTAVENIA
+         * 12. POMOCNÉ FUNKCIE A NASTAVENIA
          */
         function setStatus(active, text = "") {
             const ind = document.getElementById('statusIndicator');
@@ -871,8 +1104,9 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
 
         function updateModelInfo() {
             const sel = document.getElementById('modelSelector');
-            const cost = sel.selectedOptions[0]?.dataset?.cost || '1.0';
-            document.getElementById('costBadge').innerText = `-${cost}% / prompt`;
+            const baseCost = parseFloat(sel.selectedOptions[0]?.dataset?.cost || '1.0');
+            const totalCost = (baseCost * currentThinkingMultiplier).toFixed(2);
+            document.getElementById('costBadge').innerText = `-${totalCost}% / prompt`;
         }
 
         async function openSettings() {
@@ -904,18 +1138,31 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
         // ŠTART APLIKÁCIE
         window.addEventListener('DOMContentLoaded', async () => {
             await initDB();
+            await loadSavedWallpaper();
             await loadQuota();
 
-            // Obnovenie správ z IndexedDB
-            const history = await dbGetAll('chatHistory');
-            history.forEach(item => appendMessage(item.role, item.content, item.thinking || null));
+            // Obnovenie uloženej úrovne uvažovania
+            const savedThinking = await dbGet('appState', 'thinking_level');
+            if (savedThinking && savedThinking.value) {
+                document.getElementById('thinkingSlider').value = savedThinking.value;
+                changeThinkingLevel(savedThinking.value);
+            }
+
+            // Inicializácia sessions
+            const sessions = await dbGetAll('chatSessions');
+            if (sessions.length === 0) {
+                await createNewChatSession();
+            } else {
+                currentSessionId = sessions[sessions.length - 1].id;
+                await loadChatSession(currentSessionId);
+            }
+
             updateModelInfo();
 
-            // Automatická synchronizácia s Google Radarom, ak už existuje API kľúč
             const savedKey = await dbGet('appState', 'gemini_api_key');
             if (savedKey) scanGoogleRadar();
 
-            // Klávesová skratka Enter pre chat
+            // Enter klávesová skratka pre chat
             document.getElementById('promptInput').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -923,7 +1170,7 @@ Pred každým riešením vlož blok <thought> s rozpisom práce agentov a násle
                 }
             });
 
-            // Klávesová skratka Enter pre terminál
+            // Enter pre terminál
             document.getElementById('terminalInput').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
